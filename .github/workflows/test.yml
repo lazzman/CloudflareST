@@ -132,31 +132,21 @@ jobs:
           GOARCH: amd64
           CGO_ENABLED: '0'
 
-  # goroutineleak 检测（实验性，需要 Go 1.26+）
   goroutineleak:
-    name: Goroutine 泄漏检测
+    name: Go 1.26 Goroutine 泄漏实验兼容性
     runs-on: ubuntu-latest
-    continue-on-error: true # 实验性功能，不阻塞 CI
+    continue-on-error: true
     steps:
       - name: 检出代码
         uses: actions/checkout@v7
 
-      - name: 设置 Go 环境（需要 1.26+ 支持 goroutineleakprofile）
+      - name: 设置支持实验开关的 Go 1.26
         uses: actions/setup-go@v6
         with:
-          go-version: 'stable' # 当前 stable 为 1.26.x，支持 goroutineleakprofile
+          go-version: '1.26.x'
 
-      - name: 使用 GOEXPERIMENT=goroutineleakprofile 编译并运行
-        run: |
-          GOEXPERIMENT=goroutineleakprofile go build -trimpath -o cfst_test .
-          # 运行一次简单的测速，结束后检查 goroutineleak profile
-          ./cfst_test -f ip.txt -t 1 -dn 1 -dd -timeout 30 || true
-          # 如果存在 goroutineleak profile，输出统计信息
-          if ls goroutineleak* 1> /dev/null 2>&1; then
-            echo "=== Goroutine Leak Profile ==="
-            go tool pprof -top goroutineleak*
-          else
-            echo "未发现 goroutineleak profile 文件（可能无泄漏或 Go 版本不支持）"
-          fi
+      - name: 启用实验开关运行单元与回环测试
+        run: go test ./... -count=1 -timeout 180s
         env:
           CGO_ENABLED: '0'
+          GOEXPERIMENT: goroutineleakprofile

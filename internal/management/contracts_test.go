@@ -10,6 +10,7 @@ import (
 	"net/netip"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -39,30 +40,41 @@ func TestContractForwardedSourceOnlyTrustsConfiguredChain(t *testing.T) {
 
 func TestContractRandomPasswordIsEphemeralAndRotates(t *testing.T) {
 	dir := t.TempDir()
-	runtime := filepath.Join(t.TempDir(), "runtime")
-	config := Config{DataDir: dir, RuntimeDir: runtime, Engine: &acceptanceEngine{}, Provider: newAcceptanceProvider()}
+	runtimeDir := filepath.Join(t.TempDir(), "runtime")
+	config := Config{DataDir: dir, RuntimeDir: runtimeDir, Engine: &acceptanceEngine{}, Provider: newAcceptanceProvider()}
 	first, err := Open(config)
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() {
+		if first != nil {
+			_ = first.Close()
+		}
+	})
 	firstFile := first.PasswordFile()
 	password, err := os.ReadFile(firstFile)
 	if err != nil {
 		t.Fatal(err)
 	}
-	for filename, mode := range map[string]os.FileMode{runtime: 0700, firstFile: 0600, filepath.Join(dir, "master.key"): 0600} {
+	for filename, mode := range map[string]os.FileMode{runtimeDir: 0700, firstFile: 0600, filepath.Join(dir, "master.key"): 0600} {
 		info, err := os.Stat(filename)
-		if err != nil || info.Mode().Perm() != mode {
-			t.Fatalf("权限不符 %s %v", filename, err)
+		if err != nil {
+			t.Fatalf("无法读取受保护路径 %s：%v", filename, err)
+		}
+		if runtime.GOOS != "windows" && info.Mode().Perm() != mode {
+			t.Fatalf("权限不符 %s：得到 %04o，期望 %04o", filename, info.Mode().Perm(), mode)
 		}
 	}
 	if _, err := os.Stat(filepath.Join(dir, "admin-password")); !errors.Is(err, os.ErrNotExist) {
 		t.Fatal("随机密码不应进入业务数据目录")
 	}
-	if _, err := Open(config); err == nil {
+	if duplicate, err := Open(config); err == nil {
+		_ = duplicate.Close()
 		t.Fatal("同一卷不得由两个实例获取执行权")
 	}
-	if err := first.Close(); err != nil {
+	err = first.Close()
+	first = nil
+	if err != nil {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(firstFile); !errors.Is(err, os.ErrNotExist) {

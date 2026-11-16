@@ -36,7 +36,7 @@ Linux 可以在隔离容器中分别保留、移除 NET_RAW 能力来验证原�
 
 ## 持续集成
 
-`.github/workflows/test.yml` 除基础 Linux 检查和可失败不阻塞的 goroutine 泄漏实验外，还包含以下平台检查：
+`.github/workflows/test.yml` 除基础 Linux 检查和可失败不阻塞的 Go 1.26 goroutine 泄漏实验兼容性测试外，还包含以下平台检查：
 
 1. Linux、macOS、Windows 原生执行完整单测与回环测试；Linux / macOS 运行竞态检测，Windows 运行常规测试。
 2. Linux / Windows 执行 386 测试，覆盖 32 位原子操作和数值边界。
@@ -44,3 +44,10 @@ Linux 可以在隔离容器中分别保留、移除 NET_RAW 能力来验证原�
 4. Linux 专项容器移除 `NET_RAW` 并开放 ping socket 组范围，强制验证无 raw 权限时的非特权 datagram 路径；基础平台 job 无权限时则允许 raw 用例显示为 SKIP。
 
 交叉编译只验证能否构建，不等同于在目标操作系统运行测试；原生 CI 和回环测试负责补齐运行期验证。Windows API 测试只有在 Windows 原生 job 上运行。
+
+## 跨平台 CI 边界
+
+- 32 位任务运行完整单元测试，不只交叉编译。IPv4 / IPv6 网段容量必须按当前平台的 `int` 宽度限幅，防止较大网段容量移位后变成零或负数。
+- 随机密码契约在所有平台检查文件存在、单实例互斥、退出清理和重启轮换；POSIX 的 `0700` / `0600` 权限位只在非 Windows 平台断言。Windows 使用 ACL，此测试不代表已经验证 ACL 隔离。
+- 下载重定向测试使用主动刷出的正文及真实正文窗口，不假定极小响应在 Windows 上必然产生非零时长；生产代码仍拒绝零时长、零正文或真实读取失败的样本。
+- `goroutineleakprofile` 是版本相关的 Go 实验开关，不保证跟随 `stable` 一直存在。可选任务固定在 Go `1.26.x` 并在该开关下运行测试，不发起公网测速；其通过只代表实验模式兼容，不等于生成了泄漏分析报告或证明没有 goroutine 泄漏。

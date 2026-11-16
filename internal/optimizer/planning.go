@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/netip"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -371,7 +372,7 @@ func prefixFamily(prefix netip.Prefix) string {
 
 func prefixCapacity(prefix netip.Prefix, cap int) int {
 	bits := prefix.Addr().BitLen() - prefix.Bits()
-	if bits >= 63 {
+	if bits >= strconv.IntSize-1 {
 		return cap
 	}
 	return min(cap, 1<<bits)

@@ -140,13 +140,15 @@ func TestDownloadSameOriginRedirectAndCrossOriginRefusal(t *testing.T) {
 					return
 				}
 				writer.Write([]byte("payload"))
+				writer.(http.Flusher).Flush()
+				<-request.Context().Done()
 			})
 			sample, err := downloadCandidate(context.Background(), request)
 			if cross {
 				if err == nil || atomic.LoadInt32(&calls) != 1 || sample.End != "failed" {
 					t.Fatalf("跨源跳转未拒绝: %+v,%v,%d", sample, err, atomic.LoadInt32(&calls))
 				}
-			} else if err != nil || sample.End != "completed" || sample.Bytes != 7 || atomic.LoadInt32(&calls) != 2 {
+			} else if err != nil || sample.End != "window" || sample.Bytes != 7 || sample.Seconds <= 0 || atomic.LoadInt32(&calls) != 2 {
 				t.Fatalf("同源重定向应保持候选 IP: %+v,%v,%d", sample, err, atomic.LoadInt32(&calls))
 			}
 		})
