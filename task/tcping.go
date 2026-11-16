@@ -120,8 +120,17 @@ func (p *Ping) Run() utils.PingDelaySet {
 	if len(p.ips) == 0 {
 		return p.csv
 	}
+	if ICMPPing {
+		p.ensureICMP()
+		defer closeICMP()
+	}
 	if Httping {
 		fmt.Printf("开始延迟测速（模式：HTTP, 端口：%d, 范围：%v ~ %v ms, 丢包：%.2f）\n", TCPPort, utils.InputMinDelay.Milliseconds(), utils.InputMaxDelay.Milliseconds(), utils.InputMaxLossRate)
+	} else if ICMPPing {
+		fmt.Printf("开始延迟测速（模式：ICMP, 范围：%v ~ %v ms, 丢包：%.2f）\n", utils.InputMinDelay.Milliseconds(), utils.InputMaxDelay.Milliseconds(), utils.InputMaxLossRate)
+		if !Disable {
+			utils.Tip("ICMP 只测量网络延迟，不检测 [-tp] 端口是否可连通；下载测速仍会连接该端口。")
+		}
 	} else {
 		fmt.Printf("开始延迟测速（模式：TCP, 端口：%d, 范围：%v ~ %v ms, 丢包：%.2f）\n", TCPPort, utils.InputMinDelay.Milliseconds(), utils.InputMaxDelay.Milliseconds(), utils.InputMaxLossRate)
 	}
@@ -193,6 +202,10 @@ func (p *Ping) tcping(ip *net.IPAddr) (bool, time.Duration) {
 func (p *Ping) checkConnection(ip *net.IPAddr) (recv int, totalDelay time.Duration, colo string) {
 	if Httping {
 		recv, totalDelay, colo = p.httping(ip)
+		return
+	}
+	if ICMPPing {
+		recv, totalDelay, colo = p.icmping(ip)
 		return
 	}
 	colo = "" // TCPing 不获取 colo

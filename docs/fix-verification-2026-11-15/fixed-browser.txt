@@ -1,0 +1,5 @@
+{"case":"F-03","status":"passed","tasksBefore":1,"tasksAfterReloadClick":1,"posts":1}
+{"case":"C01-unrelated-action-and-readback","status":"passed"}
+{"case":"F-04","status":"passed","timezone":"UTC","serverInstant":"2027-01-01T00:00:00Z","displayed":"2027/1/1 00:00:00"}
+{"case":"F-08","status":"passed","overrides":[5,8],"zeroRejected":true,"blankUsesDefault":true}
+{"case":"loopback-regression","status":"completed","candidates":1,"deliveries":0}

@@ -1,0 +1,123 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.08kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/alpine:3.22
+#2 ...
+
+#3 [internal] load metadata for docker.io/library/node:22-alpine
+#3 DONE 3.4s
+
+#4 [internal] load metadata for docker.io/library/golang:1.26-alpine
+#4 DONE 3.6s
+
+#2 [internal] load metadata for docker.io/library/alpine:3.22
+#2 DONE 3.8s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 176B done
+#5 DONE 0.0s
+
+#6 [web 1/6] FROM docker.io/library/node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
+#6 resolve docker.io/library/node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a 0.0s done
+#6 DONE 0.0s
+
+#7 [backend 1/7] FROM docker.io/library/golang:1.26-alpine@sha256:30b1e546a9c7fa3b747c2bdba3a0c7bdf3a02ebb4c5b8405d2f948d7e8aac4ec
+#7 resolve docker.io/library/golang:1.26-alpine@sha256:30b1e546a9c7fa3b747c2bdba3a0c7bdf3a02ebb4c5b8405d2f948d7e8aac4ec 0.0s done
+#7 DONE 0.0s
+
+#8 [stage-2 1/3] FROM docker.io/library/alpine:3.22@sha256:49340b346798875b5592e5d420241f2f9cfba5f47e62ebb1446a1b34734e898f
+#8 resolve docker.io/library/alpine:3.22@sha256:49340b346798875b5592e5d420241f2f9cfba5f47e62ebb1446a1b34734e898f 0.0s done
+#8 DONE 0.0s
+
+#9 [internal] load build context
+#9 transferring context: 280.43kB 0.0s done
+#9 DONE 0.0s
+
+#10 [backend 2/7] WORKDIR /src
+#10 CACHED
+
+#11 [backend 3/7] COPY go.mod go.sum ./
+#11 CACHED
+
+#12 [web 3/6] COPY internal/management/web/package.json internal/management/web/package-lock.json ./
+#12 CACHED
+
+#13 [web 2/6] WORKDIR /src/internal/management/web
+#13 CACHED
+
+#14 [backend 4/7] RUN go mod download
+#14 CACHED
+
+#15 [web 4/6] RUN npm ci --ignore-scripts
+#15 CACHED
+
+#16 [web 5/6] COPY internal/management/web/ ./
+#16 DONE 0.0s
+
+#17 [backend 5/7] COPY . ./
+#17 DONE 0.0s
+
+#18 [web 6/6] RUN npm run build
+#18 0.163 
+#18 0.163 > cloudflarest-management-web@0.1.0 build
+#18 0.163 > vue-tsc --noEmit && vite build
+#18 0.163 
+#18 2.165 vite v7.3.6 building client environment for production...
+#18 2.216 transforming...
+#18 2.957 ✓ 93 modules transformed.
+#18 3.011 rendering chunks...
+#18 3.039 computing gzip size...
+#18 3.045 dist/index.html                                                                   0.52 kB │ gzip:  0.34 kB
+#18 3.045 dist/.vite/manifest.json                                                          8.47 kB │ gzip:  0.97 kB
+#18 3.045 dist/assets/index-DYzdPyB_.css                                                   12.82 kB │ gzip:  3.64 kB
+#18 3.045 dist/assets/NotFoundPage-BFrcXyJZ.js                                              0.54 kB │ gzip:  0.45 kB
+#18 3.045 dist/assets/PagerControl.vue_vue_type_script_setup_true_lang-B5yPoCb9.js          0.61 kB │ gzip:  0.41 kB
+#18 3.045 dist/assets/ResourceState.vue_vue_type_script_setup_true_lang-DvSH6dre.js         0.82 kB │ gzip:  0.58 kB
+#18 3.045 dist/assets/serialize-3WElZqnO.js                                                 1.53 kB │ gzip:  0.92 kB
+#18 3.045 dist/assets/MutationState.vue_vue_type_script_setup_true_lang-Cr5F-u-U.js         1.93 kB │ gzip:  1.09 kB
+#18 3.045 dist/assets/LoginPage-DWV8U1eH.js                                                 2.09 kB │ gzip:  1.30 kB
+#18 3.045 dist/assets/TargetFacts.vue_vue_type_script_setup_true_lang-C74zTgaO.js           2.47 kB │ gzip:  1.23 kB
+#18 3.045 dist/assets/StageProgressTable.vue_vue_type_script_setup_true_lang-BW8BtBRB.js    2.62 kB │ gzip:  1.49 kB
+#18 3.045 dist/assets/TaskActions.vue_vue_type_script_setup_true_lang-BwP1PEGB.js           2.92 kB │ gzip:  1.47 kB
+#18 3.045 dist/assets/SettingsPage-CjLaT0iC.js                                              3.28 kB │ gzip:  1.87 kB
+#18 3.045 dist/assets/ProtectionControl.vue_vue_type_script_setup_true_lang-jhdVMYUq.js     3.35 kB │ gzip:  1.88 kB
+#18 3.045 dist/assets/TargetSelector.vue_vue_type_script_setup_true_lang-CX6gfUFy.js        3.45 kB │ gzip:  1.73 kB
+#18 3.045 dist/assets/TaskListPage-BQULxe_P.js                                              4.09 kB │ gzip:  2.10 kB
+#18 3.045 dist/assets/QueuePage-gar6Go-U.js                                                 4.78 kB │ gzip:  2.16 kB
+#18 3.045 dist/assets/LogsPage-CON-0EZf.js                                                  5.10 kB │ gzip:  2.40 kB
+#18 3.045 dist/assets/TaskOverviewPage-kbcXzA-m.js                                          5.27 kB │ gzip:  2.36 kB
+#18 3.045 dist/assets/ConnectionsPage-BJfgfiNJ.js                                           7.35 kB │ gzip:  3.28 kB
+#18 3.045 dist/assets/RunListPage-SpSYgCLr.js                                              10.32 kB │ gzip:  4.29 kB
+#18 3.045 dist/assets/TaskEditorPage-2HBtS5gI.js                                           20.30 kB │ gzip:  7.43 kB
+#18 3.045 dist/assets/RunDetailPage-CrvnkAbj.js                                            29.98 kB │ gzip: 10.58 kB
+#18 3.045 dist/assets/index-1gJURBrq.js                                                   132.07 kB │ gzip: 51.87 kB
+#18 3.046 ✓ built in 867ms
+#18 DONE 3.1s
+
+#19 [backend 6/7] COPY --from=web /src/internal/management/web/dist ./internal/management/web/dist
+#19 DONE 0.0s
+
+#20 [backend 7/7] RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/cfst-web ./cmd/cfst-web
+#20 DONE 5.0s
+
+#21 [stage-2 2/3] RUN addgroup -S -g 10001 cfst && adduser -S -D -H -u 10001 -G cfst cfst     && mkdir -p /var/lib/cfst /tmp     && chown -R 10001:10001 /var/lib/cfst
+#21 CACHED
+
+#22 [stage-2 3/3] COPY --from=backend /out/cfst-web /usr/local/bin/cfst-web
+#22 DONE 0.0s
+
+#23 exporting to image
+#23 exporting layers
+#23 exporting layers 0.2s done
+#23 exporting manifest sha256:e91e6e110024c03bb3926dfe9ad940b7731cbd298f9ed4034b9ad16274f0f58e done
+#23 exporting config sha256:18c76f52caf82ae15d559db5f72ca284407c2fb80bd58f2f305d65a40f7c14ff done
+#23 exporting attestation manifest sha256:d55829d7b02ced19697c9c62dc8b9f40b872e21ddd04376f2e0b74d725fbc0fe done
+#23 exporting manifest list sha256:b83afec2ad9e6b69ede04b96ea0d3b64097aa138f379bb113af73cf1f960135b done
+#23 naming to docker.io/library/cloudflarest-management:r3-rc-fixed done
+#23 unpacking to docker.io/library/cloudflarest-management:r3-rc-fixed 0.0s done
+#23 DONE 0.3s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/n1nyl2rybtts8102xw699v4a7

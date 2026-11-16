@@ -1,0 +1,24 @@
+=== RUN   TestPostRCAuditStaleFailedAttemptCannotResendSuccessfulChannel
+    zz_post_rc_audit_test.go:39: A=failed→B=success后，旧页面仍引用A；HTTP=202；模拟Notify次数=3；DNS次数=0；全部为本机替身，无真实消息
+    zz_post_rc_audit_test.go:40: 成功渠道仍可因旧失败尝试被重发，期望409，实际202：{"operation_id":"fe6c46a8ad0067bfc9a208cb8be3bd039410f5cebfe98612","object_id":"audit-finished-run","state":"accepted","result":{"delivery_ids":["e7957a5dd8e86ae1fcb169abe45d62117e3211d662059a5f"],"run_id":"audit-finished-run"},"created_at":"2026-11-14T00:15:00Z","action":"POST /api/v1/runs/audit-finished-run/notifications "}
+--- FAIL: TestPostRCAuditStaleFailedAttemptCannotResendSuccessfulChannel (0.14s)
+=== RUN   TestPostRCAuditPendingRetryRejectsAnotherStaleRetry
+=== RUN   TestPostRCAuditPendingRetryRejectsAnotherStaleRetry/pending
+    zz_post_rc_audit_test.go:56: B=pending 时再次引用A：错误=<nil>，受理结果=map[delivery_ids:[746cc8d53986f96d8ea034fd3b9c620d48d6e5519f362f0d] run_id:audit-inflight-run]；事务将回滚，未触发任何发送
+    zz_post_rc_audit_test.go:57: 已有同渠道重试在途仍受理第三次发送
+=== RUN   TestPostRCAuditPendingRetryRejectsAnotherStaleRetry/dispatching
+    zz_post_rc_audit_test.go:56: B=dispatching 时再次引用A：错误=<nil>，受理结果=map[delivery_ids:[08a8c5bb686083a6273a2e655ab832964f78d7fbbd067930] run_id:audit-inflight-run]；事务将回滚，未触发任何发送
+    zz_post_rc_audit_test.go:57: 已有同渠道重试在途仍受理第三次发送
+=== RUN   TestPostRCAuditPendingRetryRejectsAnotherStaleRetry/running
+    zz_post_rc_audit_test.go:56: B=running 时再次引用A：错误=<nil>，受理结果=map[delivery_ids:[65a71cbdeea5dfca94c2e9f3254215dbe47f515a7e485415] run_id:audit-inflight-run]；事务将回滚，未触发任何发送
+    zz_post_rc_audit_test.go:57: 已有同渠道重试在途仍受理第三次发送
+--- FAIL: TestPostRCAuditPendingRetryRejectsAnotherStaleRetry (0.16s)
+    --- FAIL: TestPostRCAuditPendingRetryRejectsAnotherStaleRetry/pending (0.05s)
+    --- FAIL: TestPostRCAuditPendingRetryRejectsAnotherStaleRetry/dispatching (0.05s)
+    --- FAIL: TestPostRCAuditPendingRetryRejectsAnotherStaleRetry/running (0.05s)
+=== RUN   TestPostRCAuditPositiveFiniteLatencyAcceptedByBackend
+    zz_post_rc_audit_test.go:68: 后端任务保存成功，延迟阈值=60001ms，未运行测速
+--- PASS: TestPostRCAuditPositiveFiniteLatencyAcceptedByBackend (0.05s)
+FAIL
+FAIL	github.com/masgzy/CloudflareST/internal/management	0.363s
+FAIL

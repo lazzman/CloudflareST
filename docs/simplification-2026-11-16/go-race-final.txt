@@ -1,0 +1,1 @@
+ok  	github.com/masgzy/CloudflareST/internal/management	45.706s

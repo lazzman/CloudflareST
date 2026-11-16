@@ -1,0 +1,53 @@
+记录时间：2026-11-15T05:44:07.470Z
+
+$ go vet ./...
+exit_code=0
+stdout:（空）
+stderr:（空）
+
+$ git diff --check
+exit_code=0
+stdout:（空）
+stderr:（空）
+
+$ go version
+exit_code=0
+go version go1.26.2 darwin/arm64
+stderr:（空）
+
+$ node --version
+exit_code=0
+v22.23.4
+stderr:（空）
+
+$ npm --version
+exit_code=0
+10.9.9
+stderr:（空）
+
+$ docker image inspect cloudflarest-management:r3-rc-fixed --format {{.Id}} {{.Created}} {{.Os}}/{{.Architecture}}
+exit_code=0
+sha256:b83afec2ad9e6b69ede04b96ea0d3b64097aa138f379bb113af73cf1f960135b 2026-11-15T05:42:58.938268585Z linux/arm64
+stderr:（空）
+
+$ docker ps -a --filter name=cfst-r3-test --format {{.Names}} {{.Status}}
+exit_code=0
+stdout:（空）
+stderr:（空）
+
+$ docker volume ls --filter name=cfst-r3-test --format {{.Name}}
+exit_code=0
+stdout:（空）
+stderr:（空）
+
+$ lsof -nP -iTCP:5187 -sTCP:LISTEN
+exit_code=1
+stdout:（空）
+stderr:（空）
+
+$ lsof -nP -iTCP:5191 -sTCP:LISTEN
+exit_code=1
+stdout:（空）
+stderr:（空）
+
+本轮临时Go测试服务：未发现残留进程。

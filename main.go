@@ -72,7 +72,7 @@ func init() {
         指定下载测速地址；需为 CF 托管的可直接下载大文件（默认 Parallels 官方 200.9MB 安装包，
         商业公司稳定、带宽充足）；需以 http:// 或 https:// 协议前缀开头
     -tp 443
-        指定测速端口；延迟测速/下载测速时使用的端口；(默认 443 端口)
+        指定测速端口；TCPing/HTTPing 延迟测速与下载测速使用此端口，ICMP 延迟测速忽略；(默认 443 端口)
         -httping 模式下若未显式指定 -tp，会按测速地址协议自动选择（http → 80、https → 443）
 
   测试参数：
@@ -86,18 +86,24 @@ func init() {
         下载测速数量；延迟测速并排序后，从最低延迟起下载测速的数量；(默认 10 个)
     -dt 10
         下载测速时间；单个 IP 下载测速最长时间，不能太短；(默认 10 秒)
+    -ping
+        切换测速模式；延迟测速改为 ICMP Echo，测量真实网络 RTT，不依赖 TCP 端口是否开放
+        （适合 TCPing 被墙或目标端口不通、但仍想比较延迟的场景）；与 [-httping] 互斥
+        ICMP 延迟测速忽略 [-tp] 和 IP 条目中的端口；启用下载测速时仍按该端口连接；[-intf] 同样生效
+        Linux 可用 root / CAP_NET_RAW，或配置 net.ipv4.ping_group_range 允许运行用户使用 ping socket
+        macOS 在原始套接字不可用时尝试非特权 ICMP；Windows 原始套接字不可用时改用系统 API（毫秒精度）；(默认 TCPing)
     -httping
-        切换测速模式；延迟测速模式改为 HTTP 协议，所用测试地址为 [-url] 参数；(默认 TCPing)
+        切换测速模式；延迟测速模式改为 HTTP 协议，所用测试地址为 [-url] 参数；与 [-ping] 互斥；(默认 TCPing)
     -httping-code 200
         有效状态代码；HTTPing 延迟测速时网页返回的有效 HTTP 状态码，仅限一个；(默认 200 301 302)
     -cfcolo HKG,KHH,NRT,LAX,SEA,SJC,FRA,MAD
         匹配指定地区；IATA 机场地区码或国家/城市码，英文逗号分隔，大小写均可；(默认 所有地区)
-        HTTPing 模式在延迟测速时直接过滤；TCPing 模式会自动启用 [-getcolo] 获取地区码后过滤
+        HTTPing 模式在延迟测速时直接过滤；TCPing / ICMP 模式会自动启用 [-getcolo] 获取地区码后过滤
         （地区码获取失败的 N/A 结果会被移除）
     -dd
         禁用下载测速；禁用后测速结果会按延迟排序 (默认按下载速度排序)；(默认 启用)
     -getcolo
-        强制获取机场三字码；TCPing 模式下结果默认显示 N/A，开启后会对测速结果
+        强制获取机场三字码；TCPing / ICMP 模式下结果默认显示 N/A，开启后会对测速结果
         逐个发起轻量 HEAD 请求（不计入测速结果）补齐地区码，搭配 [-dd] 使用效果最佳；
         获取的地区码会参与 [-cfcolo] 过滤（指定 [-cfcolo] 时无需手动开启本参数）；
         HTTPing 模式无需开启（本身已获取）；(默认 关闭)
@@ -158,6 +164,7 @@ func init() {
 	flag.StringVar(&task.URL, "url", task.DefaultURL, "指定延迟测速地址（HTTPing/getcolo）")
 	flag.StringVar(&task.DURL, "durl", task.DefaultDownloadURL, "指定下载测速地址")
 
+	flag.BoolVar(&task.ICMPPing, "ping", false, "ICMP 延迟测速")
 	flag.BoolVar(&task.Httping, "httping", false, "切换测速模式")
 	flag.IntVar(&task.HttpingStatusCode, "httping-code", 0, "有效状态代码")
 	flag.StringVar(&task.HttpingCFColo, "cfcolo", "", "匹配指定地区")
@@ -189,6 +196,11 @@ func init() {
 	flag.BoolVar(&printVersion, "v", false, "打印程序版本")
 	flag.Usage = func() { fmt.Print(strings.ReplaceAll(help, "\\x1b", "\x1b")) }
 	flag.Parse()
+
+	if task.ICMPPing && task.Httping {
+		utils.Error("[-ping] 与 [-httping] 不能同时开启，请只选择一种延迟测速模式。")
+		os.Exit(1)
+	}
 
 	// 检测哪些参数被显式指定（用于 -ipv6 优先级、-tp 自动端口、-url/-durl 使用场景提醒）
 	ipFileSet, tpSet, urlSet, durlSet := false, false, false, false
@@ -235,11 +247,15 @@ func init() {
 		utils.Tip("[-qn] 与 [-allip] 同时指定，按 [-qn] 的总测速数量采样。")
 	}
 
-	// TCPing 模式下 -cfcolo 过滤依赖地区码：自动启用 -getcolo，
+	// TCPing / ICMP 模式下 -cfcolo 过滤依赖地区码：自动启用 -getcolo，
 	// 测速结束后对结果发起轻量请求获取地区码并参与过滤
 	if task.HttpingCFColomap != nil && !task.Httping && !task.ForceGetColo {
 		task.ForceGetColo = true
-		utils.Tip("TCPing 模式下 [-cfcolo] 过滤需要地区码，已自动启用 [-getcolo]（测速结束后向 [-url] 发起轻量请求获取）。")
+		mode := "TCPing"
+		if task.ICMPPing {
+			mode = "ICMP"
+		}
+		utils.Tip("%s 模式下 [-cfcolo] 过滤需要地区码，已自动启用 [-getcolo]（测速结束后向 [-url] 发起轻量请求获取）。", mode)
 	}
 
 	// -httping 模式下未显式指定 -tp 时，按测速地址协议自动选择端口（http→80、https→443）
@@ -389,7 +405,7 @@ func main() {
 
 	// 开始延迟测速 + 过滤延迟/丢包
 	pingData := task.NewPing().Run().FilterDelay().FilterLossRate()
-	// 强制获取机场三字码（-getcolo，仅 TCPing 模式生效；TCPing 默认不产生 HTTP 请求，地区码为空）
+	// 强制获取机场三字码（-getcolo 在 TCPing / ICMP 模式下生效；这两种模式默认不产生 HTTP 请求，地区码为空）
 	pingData = task.TestGetColo(pingData)
 	// 开始下载测速
 	speedData := task.TestDownloadSpeed(pingData)

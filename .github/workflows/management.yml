@@ -1,0 +1,53 @@
+name: 管理端定向验收
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  management:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v7
+      - name: 设置 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: internal/management/web/package-lock.json
+      - name: 设置 Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: 'stable'
+      - name: 前端测试及生产构建
+        working-directory: internal/management/web
+        run: npm ci && npm test && npm run build
+      - name: 后端定向竞态验收
+        run: go test -race -count=1 ./internal/optimizer ./internal/integrations ./internal/management ./cmd/cfst-web
+      - name: 安装隔离测试浏览器
+        working-directory: internal/management/web
+        run: npx playwright install --with-deps chromium
+      - name: 浏览器交互及真实同源冒烟
+        working-directory: internal/management/web
+        run: npm run test:browser && npm run test:browser:fixes && node tests/live.mjs
+      - name: 八项验收缺陷复验
+        run: node docs/acceptance-2026-11-15/reproduce-go.mjs && node scripts/test-management-fixes.mjs
+      - name: 完整性缺口与分页复验
+        run: node docs/completeness-2026-11-15/check-go.mjs && node scripts/test-management-completeness.mjs
+      - name: 敏感历史与人工恢复复验
+        run: node docs/reconfirmation-2026-11-15/check-go.mjs && node scripts/test-management-rc-fixes.mjs
+      - name: 通知重试与延迟阈值契约复验
+        run: node docs/post-rc-audit-2026-11-15/check-go.mjs && node scripts/test-management-post-rc-fixes.mjs
+      - name: 前端外观与响应式回归
+        run: node scripts/test-management-scaffold.mjs
+      - name: 滚动容器与位置恢复回归
+        run: node scripts/test-management-scroll.mjs
+      - name: 策略与结果简化流程回归
+        run: node scripts/test-management-simplification.mjs
+      - name: 镜像构建
+        run: docker build -t cloudflarest-management:r3-acceptance .
+      - name: 断网容器启动和重启验收
+        run: sh scripts/test-management-docker.sh

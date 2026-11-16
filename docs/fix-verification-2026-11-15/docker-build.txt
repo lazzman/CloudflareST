@@ -1,0 +1,142 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.08kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/golang:1.26-alpine
+#2 ...
+
+#3 [internal] load metadata for docker.io/library/alpine:3.22
+#3 DONE 2.5s
+
+#4 [internal] load metadata for docker.io/library/node:22-alpine
+#4 DONE 2.7s
+
+#2 [internal] load metadata for docker.io/library/golang:1.26-alpine
+#2 DONE 2.7s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 176B done
+#5 DONE 0.0s
+
+#6 [backend 1/7] FROM docker.io/library/golang:1.26-alpine@sha256:30b1e546a9c7fa3b747c2bdba3a0c7bdf3a02ebb4c5b8405d2f948d7e8aac4ec
+#6 resolve docker.io/library/golang:1.26-alpine@sha256:30b1e546a9c7fa3b747c2bdba3a0c7bdf3a02ebb4c5b8405d2f948d7e8aac4ec 0.0s done
+#6 DONE 0.0s
+
+#7 [web 1/6] FROM docker.io/library/node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
+#7 resolve docker.io/library/node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a 0.0s done
+#7 DONE 0.0s
+
+#8 [stage-2 1/3] FROM docker.io/library/alpine:3.22@sha256:49340b346798875b5592e5d420241f2f9cfba5f47e62ebb1446a1b34734e898f
+#8 resolve docker.io/library/alpine:3.22@sha256:49340b346798875b5592e5d420241f2f9cfba5f47e62ebb1446a1b34734e898f 0.0s done
+#8 DONE 0.0s
+
+#9 [internal] load build context
+#9 transferring context: 339.53kB done
+#9 DONE 0.0s
+
+#10 [web 2/6] WORKDIR /src/internal/management/web
+#10 CACHED
+
+#11 [backend 2/7] WORKDIR /src
+#11 CACHED
+
+#12 [backend 3/7] COPY go.mod go.sum ./
+#12 CACHED
+
+#13 [backend 4/7] RUN go mod download
+#13 CACHED
+
+#14 [web 3/6] COPY internal/management/web/package.json internal/management/web/package-lock.json ./
+#14 DONE 0.0s
+
+#15 [backend 5/7] COPY . ./
+#15 DONE 0.0s
+
+#16 [web 4/6] RUN npm ci --ignore-scripts
+#16 6.811 
+#16 6.811 added 78 packages, and audited 79 packages in 7s
+#16 6.811 
+#16 6.811 16 packages are looking for funding
+#16 6.811   run `npm fund` for details
+#16 6.825 
+#16 6.825 4 vulnerabilities (2 moderate, 2 high)
+#16 6.825 
+#16 6.825 To address issues that do not require attention, run:
+#16 6.825   npm audit fix
+#16 6.825 
+#16 6.825 To address all issues, run:
+#16 6.825   npm audit fix --force
+#16 6.825 
+#16 6.825 Run `npm audit` for details.
+#16 6.826 npm notice
+#16 6.826 npm notice New major version of npm available! 10.9.9 -> 12.2.2
+#16 6.826 npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+#16 6.826 npm notice To update run: npm install -g npm@12.2.2
+#16 6.826 npm notice
+#16 DONE 7.0s
+
+#17 [web 5/6] COPY internal/management/web/ ./
+#17 DONE 0.0s
+
+#18 [web 6/6] RUN npm run build
+#18 0.128 
+#18 0.128 > cloudflarest-management-web@0.1.0 build
+#18 0.128 > vue-tsc --noEmit && vite build
+#18 0.128 
+#18 2.098 vite v7.3.6 building client environment for production...
+#18 2.152 transforming...
+#18 2.773 ✓ 83 modules transformed.
+#18 2.820 rendering chunks...
+#18 2.846 computing gzip size...
+#18 2.850 dist/index.html                                                                  0.52 kB │ gzip:  0.34 kB
+#18 2.850 dist/.vite/manifest.json                                                         7.96 kB │ gzip:  0.92 kB
+#18 2.850 dist/assets/index-DYzdPyB_.css                                                  12.82 kB │ gzip:  3.64 kB
+#18 2.850 dist/assets/NotFoundPage-Cbclymmj.js                                             0.54 kB │ gzip:  0.45 kB
+#18 2.850 dist/assets/PagerControl.vue_vue_type_script_setup_true_lang-BoSWhghV.js         0.61 kB │ gzip:  0.41 kB
+#18 2.850 dist/assets/ResourceState.vue_vue_type_script_setup_true_lang-CFgkZ5FT.js        0.82 kB │ gzip:  0.58 kB
+#18 2.850 dist/assets/serialize-3WElZqnO.js                                                1.53 kB │ gzip:  0.92 kB
+#18 2.850 dist/assets/MutationState.vue_vue_type_script_setup_true_lang-B7DaBR4O.js        1.93 kB │ gzip:  1.09 kB
+#18 2.850 dist/assets/LoginPage-DzjHxwk2.js                                                2.09 kB │ gzip:  1.30 kB
+#18 2.850 dist/assets/TargetFacts.vue_vue_type_script_setup_true_lang-DidypByH.js          2.42 kB │ gzip:  1.21 kB
+#18 2.850 dist/assets/TaskActions.vue_vue_type_script_setup_true_lang-b3kn0Cao.js          2.92 kB │ gzip:  1.47 kB
+#18 2.850 dist/assets/SettingsPage-CU_hmtTQ.js                                             3.28 kB │ gzip:  1.87 kB
+#18 2.850 dist/assets/ProtectionControl.vue_vue_type_script_setup_true_lang-Cls6budl.js    3.35 kB │ gzip:  1.88 kB
+#18 2.850 dist/assets/TargetSelector.vue_vue_type_script_setup_true_lang-BZXzcJmA.js       3.54 kB │ gzip:  1.76 kB
+#18 2.850 dist/assets/TaskListPage-BDPRZKhs.js                                             4.09 kB │ gzip:  2.10 kB
+#18 2.850 dist/assets/QueuePage-DuwtqRq5.js                                                4.30 kB │ gzip:  2.02 kB
+#18 2.851 dist/assets/TaskOverviewPage-cqp5QLi2.js                                         5.02 kB │ gzip:  2.21 kB
+#18 2.851 dist/assets/LogsPage-DvA4eH7F.js                                                 5.10 kB │ gzip:  2.40 kB
+#18 2.851 dist/assets/ConnectionsPage-D41AmO9T.js                                          7.35 kB │ gzip:  3.29 kB
+#18 2.851 dist/assets/RunListPage-CXDqpkFA.js                                              9.67 kB │ gzip:  4.03 kB
+#18 2.851 dist/assets/TaskEditorPage-YBt62eu_.js                                          20.03 kB │ gzip:  7.33 kB
+#18 2.851 dist/assets/RunDetailPage-C_dBQmV7.js                                           21.64 kB │ gzip:  7.90 kB
+#18 2.851 dist/assets/index-DkmXADTc.js                                                  122.72 kB │ gzip: 48.67 kB
+#18 2.851 ✓ built in 742ms
+#18 DONE 2.9s
+
+#19 [backend 6/7] COPY --from=web /src/internal/management/web/dist ./internal/management/web/dist
+#19 DONE 0.0s
+
+#20 [backend 7/7] RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/cfst-web ./cmd/cfst-web
+#20 DONE 5.8s
+
+#21 [stage-2 2/3] RUN addgroup -S -g 10001 cfst && adduser -S -D -H -u 10001 -G cfst cfst     && mkdir -p /var/lib/cfst /tmp     && chown -R 10001:10001 /var/lib/cfst
+#21 CACHED
+
+#22 [stage-2 3/3] COPY --from=backend /out/cfst-web /usr/local/bin/cfst-web
+#22 DONE 0.0s
+
+#23 exporting to image
+#23 exporting layers
+#23 exporting layers 0.2s done
+#23 exporting manifest sha256:25f1511a9d027c8aecd6d4a9527f12999f1d583dfcd9bacae636d27ebc27056c done
+#23 exporting config sha256:85284f913a96e24693f3b12b3fc31ea69f133755e986ec20ac4dc11f030778d2 done
+#23 exporting attestation manifest sha256:050ae72aca99b715e6e1c8ffe99bf134492fb447a83d126e87f4f1974400347b done
+#23 exporting manifest list sha256:fdfc9066dcb2489c2749da65b8e2bcdaba567b8eaeea857515f8513d3c4a48f1 done
+#23 naming to docker.io/library/cloudflarest-management:r3-fixed-acceptance done
+#23 unpacking to docker.io/library/cloudflarest-management:r3-fixed-acceptance 0.0s done
+#23 DONE 0.3s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/u9ddvxzngpvbhe9kh2niw3f1t

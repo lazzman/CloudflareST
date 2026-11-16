@@ -1,0 +1,10 @@
+npm notice run cloudflarest-management-web@0.1.0 test
+npm notice run vitest run
+
+ RUN  v4.1.8 /Users/lazzman/Codes/Code/Demo/cursor/运维/CF优选IP/CloudflareST/internal/management/web
+
+
+ Test Files  6 passed (6)
+      Tests  147 passed (147)
+   Start at  11:34:11
+   Duration  250ms (transform 277ms, setup 0ms, import 402ms, tests 175ms, environment 1ms)

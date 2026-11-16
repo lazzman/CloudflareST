@@ -1,0 +1,117 @@
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/success/retry-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/success/other-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/pending/retry-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/pending/other-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/dispatching/retry-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/dispatching/other-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/running/retry-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/running/other-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/failed/retry-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/failed/other-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/unconfirmed/retry-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/unconfirmed/other-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/skipped/retry-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/skipped/other-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/success/retry-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/success/other-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/pending/retry-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/pending/other-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/dispatching/retry-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/dispatching/other-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/running/retry-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/running/other-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/failed/retry-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/failed/other-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/unconfirmed/retry-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/unconfirmed/other-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/skipped/retry-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/skipped/other-channel
+    notification_retry_test.go:38: 期望 API 状态 409，实际错误 <nil>
+--- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts (0.10s)
+    --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram (0.05s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/success/retry-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/success/other-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/pending/retry-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/pending/other-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/dispatching/retry-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/dispatching/other-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/running/retry-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/running/other-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/failed/retry-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/failed/other-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/unconfirmed/retry-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/unconfirmed/other-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/skipped/retry-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/skipped/other-channel (0.00s)
+    --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom (0.05s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/success/retry-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/success/other-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/pending/retry-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/pending/other-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/dispatching/retry-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/dispatching/other-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/running/retry-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/running/other-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/failed/retry-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/failed/other-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/unconfirmed/retry-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/unconfirmed/other-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/skipped/retry-channel (0.00s)
+        --- FAIL: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/skipped/other-channel (0.00s)
+=== RUN   TestPostRCNotificationRetryKeepsLatestEligibility
+=== RUN   TestPostRCNotificationRetryKeepsLatestEligibility/telegram/failed/completed
+=== RUN   TestPostRCNotificationRetryKeepsLatestEligibility/telegram/failed/cancelled
+=== RUN   TestPostRCNotificationRetryKeepsLatestEligibility/telegram/unconfirmed/completed
+=== RUN   TestPostRCNotificationRetryKeepsLatestEligibility/telegram/unconfirmed/cancelled
+=== RUN   TestPostRCNotificationRetryKeepsLatestEligibility/wecom/failed/completed
+=== RUN   TestPostRCNotificationRetryKeepsLatestEligibility/wecom/failed/cancelled
+=== RUN   TestPostRCNotificationRetryKeepsLatestEligibility/wecom/unconfirmed/completed
+=== RUN   TestPostRCNotificationRetryKeepsLatestEligibility/wecom/unconfirmed/cancelled
+--- PASS: TestPostRCNotificationRetryKeepsLatestEligibility (0.40s)
+    --- PASS: TestPostRCNotificationRetryKeepsLatestEligibility/telegram/failed/completed (0.05s)
+    --- PASS: TestPostRCNotificationRetryKeepsLatestEligibility/telegram/failed/cancelled (0.05s)
+    --- PASS: TestPostRCNotificationRetryKeepsLatestEligibility/telegram/unconfirmed/completed (0.05s)
+    --- PASS: TestPostRCNotificationRetryKeepsLatestEligibility/telegram/unconfirmed/cancelled (0.05s)
+    --- PASS: TestPostRCNotificationRetryKeepsLatestEligibility/wecom/failed/completed (0.05s)
+    --- PASS: TestPostRCNotificationRetryKeepsLatestEligibility/wecom/failed/cancelled (0.05s)
+    --- PASS: TestPostRCNotificationRetryKeepsLatestEligibility/wecom/unconfirmed/completed (0.05s)
+    --- PASS: TestPostRCNotificationRetryKeepsLatestEligibility/wecom/unconfirmed/cancelled (0.05s)
+=== RUN   TestPostRCNotificationRetryConcurrentRequestsAndIdempotency
+    notification_retry_test.go:168: 并发新操作号只能受理一次：map[202:2]
+--- FAIL: TestPostRCNotificationRetryConcurrentRequestsAndIdempotency (0.09s)
+=== RUN   TestPostRCNotificationRetryBatchConflictRollsBack
+    notification_retry_test.go:217: 后一渠道冲突必须回滚整批请求：HTTP=202，投递=[{ID:telegram-failed OperationID: Kind:telegram ConnectionID:batch-telegram Target:<nil> IP: State:failed Verified:false NoWrite:false Reason: Automatic:false Cancellation:false PriorAttemptID: StartedAt:<nil> EndedAt:<nil> Before:<nil> Readback:<nil>} {ID:wecom-failed OperationID: Kind:wecom ConnectionID:batch-wecom Target:<nil> IP: State:failed Verified:false NoWrite:false Reason: Automatic:false Cancellation:false PriorAttemptID: StartedAt:<nil> EndedAt:<nil> Before:<nil> Readback:<nil>} {ID:wecom-success OperationID: Kind:wecom ConnectionID:batch-wecom Target:<nil> IP: State:success Verified:false NoWrite:false Reason: Automatic:false Cancellation:false PriorAttemptID: StartedAt:<nil> EndedAt:<nil> Before:<nil> Readback:<nil>} {ID:f9820e8c1169a8e1d135f1a5d2d13a8bfc54c046a08d3656 OperationID:batch-retry-operation Kind:telegram ConnectionID:batch-telegram Target:<nil> IP: State:pending Verified:false NoWrite:false Reason: Automatic:false Cancellation:false PriorAttemptID:telegram-failed StartedAt:<nil> EndedAt:<nil> Before:<nil> Readback:<nil>} {ID:c6243a4479d781d70b0d6b144f6ed97fd31af3341fc5b726 OperationID:batch-retry-operation Kind:wecom ConnectionID:batch-wecom Target:<nil> IP: State:pending Verified:false NoWrite:false Reason: Automatic:false Cancellation:false PriorAttemptID:wecom-failed StartedAt:<nil> EndedAt:<nil> Before:<nil> Readback:<nil>}]，调用=0/0
+--- FAIL: TestPostRCNotificationRetryBatchConflictRollsBack (0.05s)
+FAIL
+FAIL	github.com/masgzy/CloudflareST/internal/management	0.649s
+FAIL

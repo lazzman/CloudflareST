@@ -1,0 +1,8 @@
+{"case":"candidate-source-tags","expected":"候选可查看全部来源标记","visible":false}
+{"case":"download-completion","expected":"可辨认文件提前完整下载，而不是窗口到期","visible":false}
+{"case":"untested-download-display","expected":"未执行下载时明确未测，而非有效0字节／0秒样本","zeroSampleDisplayed":true}
+{"case":"dns-delivery-fields","expected":"投递详情显示本次选定写入 IP 与处理时间","selectedIPVisible":false,"startedAtVisible":false,"actual":"成功 DNS 投递 · edge.edge.example.test · A · record-demo-01\n操作 未知 / 投递 delivery-audit-dns / 尝试 未知\n模拟 DNS 更新已确认；未发真实请求"}
+{"case":"candidate-pagination-wiring","expected":"详情使用候选分页读取","candidateEndpointRequested":false}
+{"case":"queue-visible-progress","expected":"明确队列位置、实际等待时长、当前运行已用时","listStyle":"none","explicitPositionVisible":false,"waitElapsedVisible":false,"runElapsedVisible":false}
+{"case":"return-list-state","expected":"详情返回保留手动筛选和第2页","triggerAfterReturn":"","paginationAfterReturn":"上一页\n第 1 / 2 页 · 21 条\n下一页"}
+{"case":"isolation","browser":"157.0.8103.78","externalRequests":0,"businessWrites":0,"note":"脚本成功仅表示完成观测，不表示上述功能通过验收"}

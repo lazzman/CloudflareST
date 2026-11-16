@@ -152,12 +152,12 @@ IP 地址,已发送,已接收,丢包率,平均延迟,下载速度(MB/s),地区�
 
 ```mermaid
 flowchart TD
-    A[启动程序] --> B[参数解析与校验<br/>-tll 钳制 / -tp 自动端口 / -url / -durl 校验]
+    A[启动程序] --> B[参数解析与校验<br/>-tll 钳制 / TCP、HTTP 的 -tp 自动端口 / -url / -durl 校验]
     B --> C[加载 IP 段数据<br/>-f 文件 / -ip 指定 / 网段=数量采样]
-    C --> D[延迟测速<br/>TCPing（默认）或 HTTPing（-httping）]
+    C --> D[延迟测速<br/>TCPing（默认）、ICMP（-ping）或 HTTPing（-httping）]
     D --> E[过滤平均延迟上下限<br/>-tl / -tll]
     E --> F[过滤丢包率<br/>-tlr]
-    F --> G{开启 -getcolo<br/>且为 TCPing？}
+    F --> G{开启 -getcolo<br/>且为 TCPing 或 ICMP？}
     G -- 是 --> H[并发 HEAD 请求<br/>补齐机场三字码]
     G -- 否 --> I
     H --> I{-dd 禁用下载测速？}
@@ -174,18 +174,25 @@ flowchart TD
 sequenceDiagram
     participant M as 主流程
     participant W as 测速线程池（-n）
-    participant IP as 目标 IP:443
+    participant IP as 目标 IP
     participant U as 延迟测速地址（-url）
     participant D as 下载测速地址（-durl）
 
     M->>W: 加载 IP 段并启动并发测速
     loop 每个 IP（默认 4 次）
-        W->>IP: TCP SYN（TCPing）
-        IP-->>W: SYN/ACK（记录 RTT）
+        alt -ping
+            W->>IP: ICMP Echo（不使用 TCP 端口）
+            IP-->>W: Echo Reply（记录 RTT）
+        else -httping
+            W->>U: HEAD（直连该 IP）
+            U-->>W: 响应头 RTT + 地区码
+        else TCPing（默认）
+            W->>IP: TCP SYN（-tp 端口）
+            IP-->>W: SYN/ACK（记录 RTT）
+        end
     end
-    Note over W,U: HTTPing 模式改为 HEAD -url<br/>并从响应头解析地区码
     W->>W: 过滤：-tl / -tll / -tlr
-    alt 开启 -getcolo（仅 TCPing）
+    alt 开启 -getcolo（TCPing / ICMP）
         W->>U: HEAD（直连该 IP，不计入测速）
         U-->>W: cf-ray → 机场三字码
     end
@@ -224,7 +231,7 @@ https://github.com/masgzy/CloudflareST
     -dt 10
         下载测速时间；单个 IP 下载测速最长时间，不能太短；(默认 10 秒)
     -tp 443
-        指定测速端口；延迟测速/下载测速时使用的端口；(默认 443 端口)
+        指定测速端口；TCPing/HTTPing 延迟测速与下载测速使用此端口，ICMP 延迟测速忽略；(默认 443 端口)
     -url https://cf.xiu2.xyz/url
         指定延迟测速地址；HTTPing 延迟测速与 [-getcolo] 获取地区码时使用的地址（需 CF 托管域名），
         默认地址由 CF 边缘直接应答、响应快，适合高频小请求，建议自建；下载测速地址已分离，请使用 [-durl]。
@@ -233,8 +240,14 @@ https://github.com/masgzy/CloudflareST
         商业公司稳定、带宽充足）；
         下载测速时，软件会从 HTTP 响应头中获取该 IP 当前地区码（支持 Cloudflare、AWS CloudFront、Fastly、Gcore、CDN77、Bunny 等 CDN）并显示出来。
 
+    -ping
+        切换测速模式；延迟测速改为 ICMP Echo，测量真实网络 RTT，不依赖 TCP 端口是否开放
+        （适合 TCPing 被墙或目标端口不通、但仍想比较延迟的场景）；与 [-httping] 互斥
+        ICMP 延迟测速忽略 [-tp] 和 IP 条目中的端口；启用下载测速时仍按该端口连接；[-intf] 同样生效
+        Linux 可用 root / CAP_NET_RAW，或配置 net.ipv4.ping_group_range 允许运行用户使用 ping socket
+        macOS 在原始套接字不可用时尝试非特权 ICMP；Windows 原始套接字不可用时改用系统 API（毫秒精度）；(默认 TCPing)
     -httping
-        切换测速模式；延迟测速模式改为 HTTP 协议，所用测试地址为 [-url] 参数；(默认 TCPing)
+        切换测速模式；延迟测速模式改为 HTTP 协议，所用测试地址为 [-url] 参数；与 [-ping] 互斥；(默认 TCPing)
         当使用 HTTP 测速模式时，软件会从 HTTP 响应头中获取该 IP 当前地区码（支持 Cloudflare、AWS CloudFront、Fastly、Gcore、CDN77、Bunny 等 CDN）并显示出来。
         注意：HTTPing 本质上也算一种 网络扫描 行为，因此如果你在服务器上面运行，需要降低并发(-n)，否则可能会被一些严格的商家暂停服务。
         如果你遇到 HTTPing 首次测速可用 IP 数量正常，后续测速越来越少甚至直接为 0，但停一段时间后又恢复了的情况，那么也可能是被 运营商、Cloudflare CDN 认为你在网络扫描而 触发临时限制机制，因此才会过一会儿就恢复了，建议降低并发(-n)减少这种情况的发生。
@@ -242,7 +255,7 @@ https://github.com/masgzy/CloudflareST
         有效状态代码；HTTPing 延迟测速时网页返回的有效 HTTP 状态码，仅限一个；(默认 200 301 302)
     -cfcolo HKG,KHH,NRT,LAX,SEA,SJC,FRA,MAD
         匹配指定地区；IATA 机场地区码或国家/城市码，英文逗号分隔，大小写均可；(默认 所有地区)
-        HTTPing 模式在延迟测速时直接过滤；TCPing 模式会自动启用 [-getcolo] 获取地区码后过滤
+        HTTPing 模式在延迟测速时直接过滤；TCPing / ICMP 模式会自动启用 [-getcolo] 获取地区码后过滤
         （地区码获取失败的 N/A 结果会被移除）
         支持 Cloudflare、AWS CloudFront、Fastly、Gcore、CDN77、Bunny 等 CDN
         其中 Cloudflare、AWS CloudFront、Fastly 使用的是 IATA 三字机场地区码，如：HKG,LAX
@@ -276,7 +289,7 @@ https://github.com/masgzy/CloudflareST
     -dd
         禁用下载测速；禁用后测速结果会按延迟排序 (默认按下载速度排序)；(默认 启用)
     -getcolo
-        强制获取机场三字码；TCPing 模式下结果默认显示 N/A，开启后会对测速结果
+        强制获取机场三字码；TCPing / ICMP 模式下结果默认显示 N/A，开启后会对测速结果
         逐个发起轻量 HEAD 请求（不计入测速结果）补齐地区码，搭配 [-dd] 使用效果最佳；
         获取的地区码会参与 [-cfcolo] 过滤（指定 [-cfcolo] 时无需手动开启本参数）；
         HTTPing 模式无需开启（本身已获取）；(默认 关闭)
@@ -498,6 +511,38 @@ cfst -ipv6 -qn 500 -tn 50
 
 ****
 
+
+#### \# ICMP Ping
+
+<details>
+<summary><code><strong>「 点击展开 查看内容 」</strong></code></summary>
+
+****
+
+ICMP 模式测量 ICMP Echo RTT，不检查 TCP 端口能不能连上。TCPing 被墙、或 TCP 端口不通、但你仍想比较各 IP 延迟时，可以用它。目标或中间网络过滤 ICMP 时，结果可能表现为丢包，即使 TCP 可用。
+
+> Linux 原始套接字需要 root 或 `CAP_NET_RAW`；普通用户可将 `net.ipv4.ping_group_range` 配置为包含运行用户所属组的范围。
+> macOS 优先尝试原始套接字，失败后尝试非特权 ICMP；Windows 优先尝试原始套接字，不可用时改用系统 ICMP API，后者的延迟精度为毫秒。
+> ICMP 延迟阶段忽略 `-tp` 和 IP 条目中的端口；下载测速仍使用配置的端口。`-intf` 对 ICMP 同样生效。
+> 与 `-httping` 不能同时开。ICMP 延迟阶段不获取地区码，结果默认是 N/A；需要地区码时加 `-getcolo`（指定 `-cfcolo` 会自动打开）。
+
+开发与排查方法见 [ICMP 跨平台测试](docs/icmp-testing.md)。
+
+``` bash
+# 只测 ICMP 延迟，不下载
+cfst -ping -dd
+
+# 先按 ICMP 延迟筛选，再对前 10 个做下载测速（下载仍连接 -tp 端口）
+cfst -ping
+
+# 指定地区：测完后自动向 -url 补地区码再过滤
+cfst -ping -cfcolo HKG,NRT,LAX -dd
+```
+
+</details>
+
+****
+
 #### \# HTTPing
 
 <details>
@@ -505,10 +550,11 @@ cfst -ipv6 -qn 500 -tn 50
 
 ****
 
-目前有两种延迟测速模式，分别为 **TCP 协议、HTTP 协议**。  
-TCP 协议耗时更短、消耗资源更少，超时时间为 1 秒，该协议为默认模式。  
-HTTP 协议适用于快速测试某域名指向某 IP 时是否可以访问，超时时间为 2 秒。  
-同一个 IP，各协议去 Ping 得到的延迟一般为：**ICMP < TCP < HTTP**，越靠右对丢包等网络波动越敏感。
+目前有三种延迟测速模式，分别为 **ICMP 协议、TCP 协议、HTTP 协议**。
+ICMP 协议测量 ICMP Echo RTT，不依赖目标 TCP 端口是否开放，单次等待上限为 1 秒；Windows 系统 API 后备路径以毫秒为精度。
+TCP 协议耗时更短、消耗资源更少，超时时间为 1 秒，该协议为默认模式。
+HTTP 协议适用于快速测试某域名指向某 IP 时是否可以访问，超时时间为 2 秒。
+同一个 IP，各协议测得的延迟通常为：**ICMP < TCP < HTTP**；实际结果会受路由、防火墙策略及系统 API 精度影响，ICMP 也可能被过滤。
 
 > 注意：HTTPing 本质上也算一种**网络扫描**行为，因此如果你在服务器上面运行，需要**降低并发**(`-n`)，否则可能会被一些严格的商家暂停服务。如果你遇到 HTTPing 首次测速可用 IP 数量正常，后续测速越来越少甚至直接为 0，但停一段时间后又恢复了的情况，那么也可能是被 运营商、Cloudflare CDN 认为你在网络扫描而**触发临时限制机制**，因此才会过一会儿就恢复了，建议**降低并发**(`-n`)减少这种情况的发生。
 
@@ -575,7 +621,7 @@ cfst -httping -cfcolo HKG,KHH,NRT,LAX,SEA,SJC,FRA,MAD
 
 # HTTPing 模式下，软件是在延迟测速时通过 HTTP 响应头获得该 IP 的实际地区码并直接过滤
 
-# v2.3.5-mod-3.4 起 TCPing 模式同样可用：会自动启用 [-getcolo]，
+# v2.3.5-mod-3.4 起 TCPing 模式同样可用，ICMP（-ping）与 TCPing 相同：会自动启用 [-getcolo]，
 # 测速结束后对结果逐个发起轻量 HEAD 请求获取地区码（不计入测速结果），再按 -cfcolo 过滤
 # （地区码获取失败的 N/A 结果会被移除；也可以显式指定 -getcolo 开启）
 cfst -cfcolo HKG
@@ -819,6 +865,7 @@ cfst -ip 1.1.1.1,2.2.2.2/24,2606:4700::/32
 > - **单个 IPv6**：`[IPv6地址]:端口`，例如 `[::1]:443`
 > - **IPv6 网段**：`[IPv6网段]:端口`，例如 `[2606:4700::/32]:443`
 > - 不指定端口时使用全局 `-tp` 参数（默认 443）
+> - `-ping` 的 ICMP 延迟阶段不使用此端口；后续下载测速仍使用全局或该条目指定的端口
 
 ****
 
@@ -1125,7 +1172,7 @@ go build -o Releases/cfst_windows_386/cfst.exe -ldflags "-s -w -X main.version=$
 
 ## 开发计划
 
-尚未实现的功能与优化统一记录在 [TODO.md](TODO.md)（如 ICMP Ping 模式、框线结果表格、一键安装脚本等），欢迎按需取用 / 提 PR。
+尚未实现的功能与优化统一记录在 [TODO.md](TODO.md)（如 CIDR 均匀采样、下载速度中位数等），欢迎按需取用 / 提 PR。
 
 ****
 

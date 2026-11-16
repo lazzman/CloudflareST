@@ -1,0 +1,4 @@
+ok  	github.com/masgzy/CloudflareST/internal/management	36.315s
+ok  	github.com/masgzy/CloudflareST/internal/optimizer	1.425s
+ok  	github.com/masgzy/CloudflareST/internal/integrations	1.610s
+ok  	github.com/masgzy/CloudflareST/internal/safedata	1.011s

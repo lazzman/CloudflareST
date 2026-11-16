@@ -1,0 +1,9 @@
+?   	github.com/masgzy/CloudflareST	[no test files]
+?   	github.com/masgzy/CloudflareST/cmd/cfst-web	[no test files]
+ok  	github.com/masgzy/CloudflareST/internal/integrations	0.562s
+ok  	github.com/masgzy/CloudflareST/internal/management	2.814s
+ok  	github.com/masgzy/CloudflareST/internal/optimizer	0.368s
+?   	github.com/masgzy/CloudflareST/pkg/platform	[no test files]
+ok  	github.com/masgzy/CloudflareST/pkg/update	0.017s
+ok  	github.com/masgzy/CloudflareST/task	0.350s
+ok  	github.com/masgzy/CloudflareST/utils	0.013s

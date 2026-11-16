@@ -1,0 +1,11 @@
+=== RUN   TestCompletenessNoResultsMustRecordSkippedDNS
+    zz_completeness_test.go:30: 已结束=no_results，DNSAuto=true，明确目标=1，投递记录=[{ID:82fb011feb305dd2993d68b5d970bfffcfbc42328fcf61f6 OperationID: Kind:dns ConnectionID:audit-dns Target:0x68f96a8d2d10 IP: State:skipped Verified:false NoWrite:false Reason:本轮没有该地址族的最终合格 IP，未改动目标 Automatic:true Cancellation:false PriorAttemptID: StartedAt:<nil> EndedAt:2026-11-14 00:15:00 +0000 UTC Before:<nil> Readback:<nil>}]，外部调用=0
+--- PASS: TestCompletenessNoResultsMustRecordSkippedDNS (0.06s)
+=== RUN   TestCompletenessDNSDiscoveryMustIncludeReadTime
+    zz_completeness_test.go:65: 本次刚读取到值=192.0.2.10，read_at=2026-11-14T00:15:00Z，未发真实网络请求
+--- PASS: TestCompletenessDNSDiscoveryMustIncludeReadTime (0.05s)
+=== RUN   TestCompletenessProtectedAutoSkipMustLogResult
+    zz_completeness_test.go:85: 投递已跳过=skipped，操作日志数量=1，外部调用=0
+--- PASS: TestCompletenessProtectedAutoSkipMustLogResult (0.05s)
+PASS
+ok  	github.com/masgzy/CloudflareST/internal/management	0.162s

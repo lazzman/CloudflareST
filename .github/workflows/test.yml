@@ -7,6 +7,99 @@ on:
     branches: [main]
 
 jobs:
+  platform-tests:
+    name: 平台测试 (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v7
+
+      - name: 设置 Go 环境
+        uses: actions/setup-go@v6
+        with:
+          go-version: 'stable'
+
+      - name: 代码规范检查
+        run: go vet ./...
+
+      - name: 单元与平台回环测试
+        if: runner.os == 'Windows'
+        run: go test ./... -count=1 -timeout 180s
+
+      - name: 单元、平台回环与竞态测试
+        if: runner.os != 'Windows'
+        run: go test -race ./... -count=1 -timeout 180s
+
+  linux-icmp-fallback:
+    name: Linux 非特权 ICMP 后备路径
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v7
+
+      - name: 无 NET_RAW 时强制测试 ping socket
+        run: |
+          docker run --rm \
+            --cap-drop=NET_RAW \
+            --sysctl net.ipv4.ping_group_range="0 2147483647" \
+            -e CFST_REQUIRE_ICMP_BACKEND=datagram \
+            -v "$GITHUB_WORKSPACE:/src" -w /src \
+            golang:1.26.10 \
+            go test ./task -run TestICMPSocketLiveLoopback -v -count=1 -timeout=90s
+
+  tests-32bit:
+    name: 32 位测试 (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    env:
+      GOARCH: '386'
+      CGO_ENABLED: '0'
+      CFST_SKIP_ICMP_LIVE: '1'
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v7
+      - name: 设置 Go 环境
+        uses: actions/setup-go@v6
+        with:
+          go-version: 'stable'
+      - name: 执行 32 位单元测试
+        run: go test ./... -count=1 -timeout 180s
+
+  cross-build:
+    name: 发行架构编译 (Go ${{ matrix.go }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ['1.23.x', 'stable']
+    env:
+      CGO_ENABLED: '0'
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v7
+      - name: 设置 Go 环境
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ matrix.go }}
+      - name: 编译发行架构与平台测试
+        shell: bash
+        run: |
+          set -euo pipefail
+          for target in linux/amd64 linux/386 linux/arm64 linux/arm/5 linux/arm/6 linux/arm/7 linux/mips linux/mipsle linux/mips64 linux/mips64le windows/amd64 windows/386 windows/arm64 darwin/amd64 darwin/arm64; do
+            IFS=/ read -r GOOS GOARCH GOARM <<< "$target"
+            export GOOS GOARCH GOARM
+            echo "编译 $target"
+            go build -o "$RUNNER_TEMP/cfst" .
+            go test -c -o "$RUNNER_TEMP/cfst.test" ./task
+          done
+
   test:
     name: 基础测试与构建验证
     runs-on: ubuntu-latest

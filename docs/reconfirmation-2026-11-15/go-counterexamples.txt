@@ -1,0 +1,21 @@
+=== RUN   TestReconfirmationDownloadSecretMustNotEnterReadableSnapshot
+    zz_reconfirmation_test.go:39: 配置保存成功；历史快照含虚构token=true；DNS调用=0，通知调用=0；无真实下载
+    zz_reconfirmation_test.go:41: R3非敏感快照契约未满足：下载URL中的认证查询参数被原样保存在可读取历史中
+--- FAIL: TestReconfirmationDownloadSecretMustNotEnterReadableSnapshot (0.05s)
+=== RUN   TestReconfirmationInterruptedSummaryKeepsMainStatus
+=== RUN   TestReconfirmationInterruptedSummaryKeepsMainStatus/优选阶段未保存
+    zz_reconfirmation_test.go:65: 恢复主状态=interrupted；优选结论=""；模拟摘要="CloudflareST 任务 模拟中断摘要（audit-interrupted-task）\n执行 audit-interrupted-run；结束结论 \nIPv4 合格 0\nIPv6：未启用\nDNS：未执行／未启用或无匹配合格结果"
+    zz_reconfirmation_test.go:67: AC-72/98：人工摘要未体现运行已中断的真实结束状态
+=== RUN   TestReconfirmationInterruptedSummaryKeepsMainStatus/优选完成后收尾中断
+    zz_reconfirmation_test.go:65: 恢复主状态=interrupted；优选结论="completed"；模拟摘要="CloudflareST 任务 模拟中断摘要（audit-interrupted-task）\n执行 audit-interrupted-run；结束结论 completed\nIPv4 合格 0\nIPv6：未启用\nDNS：未执行／未启用或无匹配合格结果"
+    zz_reconfirmation_test.go:67: AC-72/98：人工摘要未体现运行已中断的真实结束状态
+--- FAIL: TestReconfirmationInterruptedSummaryKeepsMainStatus (0.12s)
+    --- FAIL: TestReconfirmationInterruptedSummaryKeepsMainStatus/优选阶段未保存 (0.06s)
+    --- FAIL: TestReconfirmationInterruptedSummaryKeepsMainStatus/优选完成后收尾中断 (0.06s)
+=== RUN   TestReconfirmationPurgeRemovesSnapshotFromCancelReceipt
+    zz_reconfirmation_test.go:98: 原运行已永久清理；取消收据状态=completed；查询收据仍包含已删快照=true；未发真实外部请求
+    zz_reconfirmation_test.go:99: AC-64：原运行已清理，但取消收据仍公开保留完整历史快照
+--- FAIL: TestReconfirmationPurgeRemovesSnapshotFromCancelReceipt (0.05s)
+FAIL
+FAIL	github.com/masgzy/CloudflareST/internal/management	0.223s
+FAIL

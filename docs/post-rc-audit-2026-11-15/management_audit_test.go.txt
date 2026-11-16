@@ -1,0 +1,70 @@
+package management
+
+import (
+	"context"
+	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/masgzy/CloudflareST/internal/integrations"
+	"github.com/masgzy/CloudflareST/internal/optimizer"
+)
+
+func TestPostRCAuditStaleFailedAttemptCannotResendSuccessfulChannel(test *testing.T) {
+	provider:=newAcceptanceProvider()
+	provider.notify=func(context.Context,integrations.Connection,string)integrations.Outcome{
+		if len(provider.notificationMessages())==1{return integrations.Outcome{State:"failed",Reason:"虚构首次发送失败"}}
+		return integrations.Outcome{State:"success"}
+	}
+	fixture:=newAcceptanceFixture(test,acceptanceNow(),nil,provider)
+	acceptanceConnection(test,fixture,"audit-channel","telegram","")
+	run:=Run{ID:"audit-finished-run",TaskID:"audit-task",TaskName:"旧页面重发审核",Status:"completed",Snapshot:acceptanceTask("旧页面重发审核"),Result:optimizer.Result{Status:"completed",Candidates:[]optimizer.Candidate{}},Deliveries:[]Delivery{}}
+	acceptancePut(test,fixture,"runs",run.ID,run)
+	first:=acceptanceRunManualNotification(test,fixture,run.ID,[]notificationItem{{Kind:"telegram",ConnectionID:"audit-channel"}},true)[0]
+	acceptanceWake(fixture);acceptanceWaitDelivery(test,fixture,run.ID,first,"failed")
+	second:=acceptanceRunManualNotification(test,fixture,run.ID,[]notificationItem{{Kind:"telegram",ConnectionID:"audit-channel",PriorAttemptID:first}},true)[0]
+	acceptanceWake(fixture);acceptanceWaitDelivery(test,fixture,run.ID,second,"success")
+	server:=httptest.NewServer(fixture.service.Handler());defer server.Close()
+	client:=acceptanceLogin(test,server)
+	body,_:=json.Marshal(map[string]any{"operation_id":randomID(),"risk_acknowledged":true,"channels":[]notificationItem{{Kind:"telegram",ConnectionID:"audit-channel",PriorAttemptID:first}}})
+	response:=acceptanceDo(test,client.client,http.MethodPost,client.base+"/api/v1/runs/"+run.ID+"/notifications",body,client.csrf,client.base)
+	encoded,_:=io.ReadAll(response.Body);response.Body.Close()
+	if response.StatusCode==http.StatusAccepted {
+		current:=acceptanceGet[Run](test,fixture,"runs",run.ID)
+		if len(current.Deliveries)>2{acceptanceWake(fixture);acceptanceWaitDelivery(test,fixture,run.ID,current.Deliveries[len(current.Deliveries)-1].ID,"success")}
+	}
+	updates,notifications:=provider.callCounts()
+	test.Logf("A=failed→B=success后，旧页面仍引用A；HTTP=%d；模拟Notify次数=%d；DNS次数=%d；全部为本机替身，无真实消息",response.StatusCode,notifications,updates)
+	if response.StatusCode!=http.StatusConflict {test.Fatalf("成功渠道仍可因旧失败尝试被重发，期望409，实际%d：%s",response.StatusCode,encoded)}
+}
+
+func TestPostRCAuditPendingRetryRejectsAnotherStaleRetry(test *testing.T) {
+	for _,state:=range []string{"pending","dispatching","running"}{
+		test.Run(state,func(test *testing.T){
+			fixture:=newAcceptanceFixture(test,acceptanceNow(),nil,nil)
+			acceptanceConnection(test,fixture,"audit-channel","telegram","")
+			fixture.service.mu.Lock();defer fixture.service.mu.Unlock()
+			transaction,err:=fixture.service.db.Begin();if err!=nil{test.Fatal(err)};defer transaction.Rollback()
+			run:=Run{ID:"audit-inflight-run",TaskID:"audit-task",Status:"completed",Snapshot:acceptanceTask("已有重试在途"),Deliveries:[]Delivery{
+				{ID:"attempt-a",Kind:"telegram",ConnectionID:"audit-channel",State:"failed"},
+				{ID:"attempt-b",Kind:"telegram",ConnectionID:"audit-channel",State:state,PriorAttemptID:"attempt-a"},
+			}}
+			if err=put(transaction,"runs",run.ID,run);err!=nil{test.Fatal(err)}
+			_,result,err:=fixture.service.manualNotifications(transaction,run.ID,[]notificationItem{{Kind:"telegram",ConnectionID:"audit-channel",PriorAttemptID:"attempt-a"}},true,"audit-new-stale-operation")
+			test.Logf("B=%s 时再次引用A：错误=%v，受理结果=%v；事务将回滚，未触发任何发送",state,err,result)
+			if err==nil{test.Fatal("已有同渠道重试在途仍受理第三次发送")}
+		})
+	}
+}
+
+func TestPostRCAuditPositiveFiniteLatencyAcceptedByBackend(test *testing.T){
+	fixture:=newAcceptanceFixture(test,acceptanceNow(),nil,nil)
+	task:=acceptanceTask("有限正延迟阈值")
+	task.Config.LatencyMaxMS=60001
+	stored,err:=acceptanceSaveTask(fixture,task,"",0)
+	if err!=nil{test.Fatalf("PRD合法阈值后端拒绝：%v",err)}
+	test.Logf("后端任务保存成功，延迟阈值=%.0fms，未运行测速",stored.Config.LatencyMaxMS)
+}
+

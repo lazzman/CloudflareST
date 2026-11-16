@@ -43,9 +43,9 @@ func bindInterface(fd uintptr, ifaceName string, ifIndex int, network string) er
 // bindDarwin macOS 平台绑定接口
 func bindDarwin(fd int, ifIndex int, network string) error {
 	switch network {
-	case "tcp4", "udp4":
+	case "tcp4", "udp4", "ip4":
 		return syscall.SetsockoptInt(fd, syscall.IPPROTO_IP, IP_BOUND_IF, ifIndex)
-	case "tcp6", "udp6":
+	case "tcp6", "udp6", "ip6":
 		return syscall.SetsockoptInt(fd, syscall.IPPROTO_IPV6, IPV6_BOUND_IF, ifIndex)
 	default:
 		err := syscall.SetsockoptInt(fd, syscall.IPPROTO_IP, IP_BOUND_IF, ifIndex)

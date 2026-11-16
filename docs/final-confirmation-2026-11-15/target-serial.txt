@@ -1,0 +1,32 @@
+=== RUN   TestConfirmationConcurrentTargetWritesKeepActualOrder
+    zz_confirmation_target_test.go:88: 同目标不同连接别名的人工投递：实际先后=192.0.2.10→192.0.2.20，重叠请求=0，最近写入IP=192.0.2.20；未断言受理FIFO；全部为替身
+--- PASS: TestConfirmationConcurrentTargetWritesKeepActualOrder (0.58s)
+=== RUN   TestConfirmationConcurrentTargetWritesKeepActualOrder
+    zz_confirmation_target_test.go:88: 同目标不同连接别名的人工投递：实际先后=192.0.2.10→192.0.2.20，重叠请求=0，最近写入IP=192.0.2.20；未断言受理FIFO；全部为替身
+--- PASS: TestConfirmationConcurrentTargetWritesKeepActualOrder (0.59s)
+=== RUN   TestConfirmationConcurrentTargetWritesKeepActualOrder
+    zz_confirmation_target_test.go:88: 同目标不同连接别名的人工投递：实际先后=192.0.2.10→192.0.2.20，重叠请求=0，最近写入IP=192.0.2.20；未断言受理FIFO；全部为替身
+--- PASS: TestConfirmationConcurrentTargetWritesKeepActualOrder (0.60s)
+=== RUN   TestConfirmationConcurrentTargetWritesKeepActualOrder
+    zz_confirmation_target_test.go:88: 同目标不同连接别名的人工投递：实际先后=192.0.2.10→192.0.2.20，重叠请求=0，最近写入IP=192.0.2.20；未断言受理FIFO；全部为替身
+--- PASS: TestConfirmationConcurrentTargetWritesKeepActualOrder (0.59s)
+=== RUN   TestConfirmationConcurrentTargetWritesKeepActualOrder
+    zz_confirmation_target_test.go:88: 同目标不同连接别名的人工投递：实际先后=192.0.2.10→192.0.2.20，重叠请求=0，最近写入IP=192.0.2.20；未断言受理FIFO；全部为替身
+--- PASS: TestConfirmationConcurrentTargetWritesKeepActualOrder (0.59s)
+=== RUN   TestConfirmationConcurrentTargetWritesKeepActualOrder
+    zz_confirmation_target_test.go:88: 同目标不同连接别名的人工投递：实际先后=192.0.2.10→192.0.2.20，重叠请求=0，最近写入IP=192.0.2.20；未断言受理FIFO；全部为替身
+--- PASS: TestConfirmationConcurrentTargetWritesKeepActualOrder (0.59s)
+=== RUN   TestConfirmationConcurrentTargetWritesKeepActualOrder
+    zz_confirmation_target_test.go:88: 同目标不同连接别名的人工投递：实际先后=192.0.2.10→192.0.2.20，重叠请求=0，最近写入IP=192.0.2.20；未断言受理FIFO；全部为替身
+--- PASS: TestConfirmationConcurrentTargetWritesKeepActualOrder (0.60s)
+=== RUN   TestConfirmationConcurrentTargetWritesKeepActualOrder
+    zz_confirmation_target_test.go:88: 同目标不同连接别名的人工投递：实际先后=192.0.2.10→192.0.2.20，重叠请求=0，最近写入IP=192.0.2.20；未断言受理FIFO；全部为替身
+--- PASS: TestConfirmationConcurrentTargetWritesKeepActualOrder (0.60s)
+=== RUN   TestConfirmationConcurrentTargetWritesKeepActualOrder
+    zz_confirmation_target_test.go:88: 同目标不同连接别名的人工投递：实际先后=192.0.2.10→192.0.2.20，重叠请求=0，最近写入IP=192.0.2.20；未断言受理FIFO；全部为替身
+--- PASS: TestConfirmationConcurrentTargetWritesKeepActualOrder (0.60s)
+=== RUN   TestConfirmationConcurrentTargetWritesKeepActualOrder
+    zz_confirmation_target_test.go:88: 同目标不同连接别名的人工投递：实际先后=192.0.2.10→192.0.2.20，重叠请求=0，最近写入IP=192.0.2.20；未断言受理FIFO；全部为替身
+--- PASS: TestConfirmationConcurrentTargetWritesKeepActualOrder (0.60s)
+PASS
+ok  	github.com/masgzy/CloudflareST/internal/management	6.986s

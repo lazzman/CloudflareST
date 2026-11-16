@@ -1,0 +1,1 @@
+{"status":"passed","offline":true,"views":9,"widths":[320,1440],"pageErrors":0,"note":"预览图片与样式全部内嵌，离线可读，无业务操作"}

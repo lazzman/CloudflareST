@@ -1,0 +1,4 @@
+wget: can't connect to remote host (127.0.0.1): Connection refused
+wget: server returned error: HTTP/1.1 401 Unauthorized
+wget: can't connect to remote host (127.0.0.1): Connection refused
+通过：断网容器、非root、只读根文件系统、嵌入静态页面、未认证拦截、随机密码权限与重启轮换、卷主密钥保留。

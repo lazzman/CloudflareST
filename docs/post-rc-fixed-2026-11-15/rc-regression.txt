@@ -1,0 +1,16 @@
+=== RUN   TestReconfirmationDownloadSecretMustNotEnterReadableSnapshot
+    zz_reconfirmation_test.go:22: 敏感 URL 在保存时被拒绝：测速文件 URL 不允许包含认证 Token、密钥或签名参数；请使用不含秘密的文件地址
+--- PASS: TestReconfirmationDownloadSecretMustNotEnterReadableSnapshot (0.05s)
+=== RUN   TestReconfirmationInterruptedSummaryKeepsMainStatus
+=== RUN   TestReconfirmationInterruptedSummaryKeepsMainStatus/优选阶段未保存
+    zz_reconfirmation_test.go:65: 恢复主状态=interrupted；优选结论=""；模拟摘要="CloudflareST 任务 模拟中断摘要（audit-interrupted-task）\n执行 audit-interrupted-run；结束结论 interrupted\nIPv4 合格 0\nIPv6：未启用\nDNS：未执行／未启用或无匹配合格结果"
+=== RUN   TestReconfirmationInterruptedSummaryKeepsMainStatus/优选完成后收尾中断
+    zz_reconfirmation_test.go:65: 恢复主状态=interrupted；优选结论="completed"；模拟摘要="CloudflareST 任务 模拟中断摘要（audit-interrupted-task）\n执行 audit-interrupted-run；结束结论 interrupted\n优选阶段结论 completed；不替代执行最终状态\nIPv4 合格 0\nIPv6：未启用\nDNS：未执行／未启用或无匹配合格结果"
+--- PASS: TestReconfirmationInterruptedSummaryKeepsMainStatus (0.13s)
+    --- PASS: TestReconfirmationInterruptedSummaryKeepsMainStatus/优选阶段未保存 (0.06s)
+    --- PASS: TestReconfirmationInterruptedSummaryKeepsMainStatus/优选完成后收尾中断 (0.06s)
+=== RUN   TestReconfirmationPurgeRemovesSnapshotFromCancelReceipt
+    zz_reconfirmation_test.go:98: 原运行已永久清理；取消收据状态=completed；查询收据仍包含已删快照=false；未发真实外部请求
+--- PASS: TestReconfirmationPurgeRemovesSnapshotFromCancelReceipt (0.05s)
+PASS
+ok  	github.com/masgzy/CloudflareST/internal/management	0.236s

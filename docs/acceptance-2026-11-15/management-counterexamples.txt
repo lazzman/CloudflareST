@@ -1,0 +1,11 @@
+=== RUN   TestAuditTelegramBotIdentityMustNotChangeInPlace
+    audit_readonly_test.go:61: HTTP=202，机器人ID 100001→200002，任务仍引用原连接=true，DNS/通知调用=0/0
+    audit_readonly_test.go:63: AC-76：机器人身份改变必须拒绝原地替换并要求新连接，实际HTTP=202
+--- FAIL: TestAuditTelegramBotIdentityMustNotChangeInPlace (0.05s)
+=== RUN   TestAuditCancelledNotificationFailureMustBeManuallyRetryable
+    audit_readonly_test.go:109: 首次取消摘要=failed；重发HTTP=202；重发状态=skipped，Cancellation=false；累计模拟Notify=1；原因=运行已取消，未发起新的业务投递
+    audit_readonly_test.go:111: AC-73：确认风险后应调用通知适配器重发取消摘要；实际未调用且跳过
+--- FAIL: TestAuditCancelledNotificationFailureMustBeManuallyRetryable (0.07s)
+FAIL
+FAIL	github.com/masgzy/CloudflareST/internal/management	0.129s
+FAIL

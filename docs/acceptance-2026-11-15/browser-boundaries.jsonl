@@ -1,0 +1,4 @@
+{"case":"C01-response-lost-page-reload","before":{"tasks":1,"pending":["440ff5ef-3ecc-4fbb-9c5d-0c7c32650fe2"]},"after":{"tasks":2,"pending":["440ff5ef-3ecc-4fbb-9c5d-0c7c32650fe2"]},"operationIds":["440ff5ef-3ecc-4fbb-9c5d-0c7c32650fe2","34671096-d368-4e35-a93a-7c02e988785e"],"dialogs":[],"duplicateCreated":true}
+{"case":"timezone-UTC","id":"1e6f24c0953ada9e4b6653450e6f34b29e9c9c07ee613c97","next":"2027-01-01T00:00:00Z","timezone":"UTC","displayed":"2027/1/1 08:00:00","expected":"2027/1/1 00:00:00","topbar":"当前席位空闲\n等待 0\nUTC","mismatch":true}
+{"case":"real-loopback-single-IP-run","status":"completed","candidates":1,"eligible":true,"ip":"127.0.0.1","deliveries":0}
+{"case":"per-CIDR-count-editor","numericInputs":0,"sourceText":"来源 1 类型\n项目内置清单\n单个 IP\nCIDR\n域名\n来源 1 值\n删除来源 1"}

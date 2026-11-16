@@ -1,0 +1,146 @@
+package optimizer
+
+import (
+    "context"
+    "errors"
+    "net/netip"
+    "testing"
+    "time"
+)
+
+func auditConfig(sources ...Source) Config {
+    config := DefaultConfig()
+    config.Sources = sources
+    config.ProbeMode = "tcp"
+    config.ProbeCount = 1
+    config.DownloadEnabled = false
+    config.IPv4Limit = 300
+    return config
+}
+
+func auditEngine() *Engine {
+    return &Engine{
+        Concurrency: 1,
+        Probe: func(context.Context, ProbeRequest) (time.Duration, error) {
+            return time.Millisecond, nil
+        },
+        Resolve: func(context.Context, string) ([]netip.Addr, error) {
+            return nil, errors.New("只读验收禁止真实 DNS 解析")
+        },
+        Download: func(context.Context, DownloadRequest) (DownloadSample, error) {
+            return DownloadSample{}, errors.New("只读验收禁止真实下载")
+        },
+        ICMPCheck: func(string) error {
+            return errors.New("只读验收禁止真实 ICMP 检查")
+        },
+    }
+}
+
+func TestReadOnlyAuditMappedCIDRBudget(t *testing.T) {
+    config := auditConfig(
+        Source{Kind: "ip", Value: "198.51.100.10"},
+        Source{Kind: "cidr", Value: "::ffff:192.0.2.0/120", Count: 4},
+    )
+    config.IPv6Enabled = true
+    config.IPv4Limit = 1
+    config.IPv6Limit = 10
+    result, err := auditEngine().Run(context.Background(), config, nil)
+    if err != nil {
+        t.Fatal(err)
+    }
+    actualIPv4 := 0
+    for _, candidate := range result.Candidates {
+        if candidate.Family == "ipv4" {
+            actualIPv4++
+            t.Logf("实际 IPv4 候选=%s，来源=%v，探测=%d，合格=%v", candidate.IP, candidate.Sources, candidate.ProbeAttempts, candidate.Eligible)
+        }
+    }
+    t.Logf("状态=%s，IPv4 实际=%d，上限=%d，预算=%+v", result.Status, actualIPv4, config.IPv4Limit, result.Budgets)
+    if actualIPv4 > config.IPv4Limit {
+        t.Errorf("AC-38/42：实际 IPv4 候选 %d 超过上限 %d", actualIPv4, config.IPv4Limit)
+    }
+}
+
+func TestReadOnlyAuditMappedCIDRDisabledFamily(t *testing.T) {
+    config := auditConfig(Source{Kind: "cidr", Value: "::ffff:192.0.2.0/120", Count: 4})
+    config.IPv4Enabled = false
+    config.IPv6Enabled = true
+    config.IPv6Limit = 10
+    result, err := auditEngine().Run(context.Background(), config, nil)
+    t.Logf("状态=%s，错误=%v，候选=%+v，预算=%+v", result.Status, err, result.Candidates, result.Budgets)
+    for _, candidate := range result.Candidates {
+        if candidate.Family == "ipv4" {
+            t.Errorf("AC-38：关闭 IPv4 后仍生成候选 %s", candidate.IP)
+        }
+    }
+}
+
+func TestReadOnlyAuditExpansionAllMatchingSources(t *testing.T) {
+    config := auditConfig(
+        Source{Kind: "ip", Value: "192.0.2.200"},
+        Source{Kind: "cidr", Value: "192.0.2.0/28", Count: 1},
+    )
+    engine := auditEngine()
+    engine.Probe = func(_ context.Context, request ProbeRequest) (time.Duration, error) {
+        if request.IP == "192.0.2.200" {
+            return time.Millisecond, nil
+        }
+        return 10 * time.Millisecond, nil
+    }
+    result, err := engine.Run(context.Background(), config, nil)
+    if err != nil {
+        t.Fatal(err)
+    }
+    prefix := netip.MustParsePrefix("192.0.2.0/28")
+    matched := 0
+    tagged := 0
+    for _, candidate := range result.Candidates {
+        if !prefix.Contains(netip.MustParseAddr(candidate.IP)) {
+            continue
+        }
+        matched++
+        present := false
+        for _, sourceID := range candidate.Sources {
+            present = present || sourceID == "source-002"
+        }
+        if present {
+            tagged++
+        } else {
+            t.Logf("遗漏 CIDR 来源：IP=%s，来源=%v，生成方式=%s", candidate.IP, candidate.Sources, candidate.Origin)
+        }
+    }
+    t.Logf("总候选=%d，落入 /28 的候选=%d，保留来源标记=%d，来源统计=%+v", len(result.Candidates), matched, tagged, result.Sources)
+    if matched != tagged {
+        t.Errorf("AC-09/40：%d 个命中来源的 IP 丢失该来源标记", matched-tagged)
+    }
+}
+
+func TestReadOnlyAuditCancelDuringSources(t *testing.T) {
+    config := auditConfig(
+        Source{Kind: "domain", Value: "first.example"},
+        Source{Kind: "domain", Value: "second.example"},
+    )
+    ctx, cancel := context.WithCancel(context.Background())
+    defer cancel()
+    engine := auditEngine()
+    engine.Resolve = func(ctx context.Context, domain string) ([]netip.Addr, error) {
+        if domain == "first.example" {
+            return []netip.Addr{netip.MustParseAddr("192.0.2.10")}, nil
+        }
+        cancel()
+        return nil, ctx.Err()
+    }
+    completedSources := 0
+    result, err := engine.Run(ctx, config, func(progress Progress) {
+        if progress.Stage == "sources" && progress.Done > completedSources {
+            completedSources = progress.Done
+        }
+    })
+    t.Logf("曾报告已处理来源=%d；返回状态=%s，错误=%v，保留来源=%d，保留候选=%d", completedSources, result.Status, err, len(result.Sources), len(result.Candidates))
+    if !errors.Is(err, context.Canceled) {
+        t.Fatal("预期取消结果")
+    }
+    if len(result.Sources) == 0 {
+        t.Error("AC-63：取消抹掉已完成解析的来源及解析地址")
+    }
+}

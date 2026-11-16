@@ -1,0 +1,15 @@
+=== RUN   TestCompletenessNoResultsMustRecordSkippedDNS
+    zz_completeness_test.go:30: 已结束=no_results，DNSAuto=true，明确目标=1，投递记录=[]，外部调用=0
+    zz_completeness_test.go:36: AC-20：无合格 IP 的自动 DNS 缺少明确的未推送及原因记录
+--- FAIL: TestCompletenessNoResultsMustRecordSkippedDNS (0.06s)
+=== RUN   TestCompletenessDNSDiscoveryMustIncludeReadTime
+    zz_completeness_test.go:65: 本次刚读取到值=192.0.2.10，read_at=<nil>，未发真实网络请求
+    zz_completeness_test.go:67: R3 目标复核契约：返回当前读取值时未携带真实读取时刻
+--- FAIL: TestCompletenessDNSDiscoveryMustIncludeReadTime (0.05s)
+=== RUN   TestCompletenessProtectedAutoSkipMustLogResult
+    zz_completeness_test.go:85: 投递已跳过=skipped，操作日志数量=0，外部调用=0
+    zz_completeness_test.go:91: CR-001 第3.4节：重复命中保护的实际跳过结果未进入统一操作日志
+--- FAIL: TestCompletenessProtectedAutoSkipMustLogResult (0.05s)
+FAIL
+FAIL	github.com/masgzy/CloudflareST/internal/management	0.163s
+FAIL

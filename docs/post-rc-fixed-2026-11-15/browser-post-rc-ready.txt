@@ -1,0 +1,4 @@
+{"case":"POST-RC-02-create","status":"passed","threshold":60001,"realBackendSaved":true,"automaticActions":false}
+{"case":"POST-RC-02-invalid","status":"passed","values":["0","-1","空值","溢出为无穷大"],"businessWrites":0,"persistedThreshold":60001}
+{"case":"POST-RC-02-edit","status":"passed","threshold":1000000000,"reloaded":true,"layouts":[1280,320],"themes":["light","dark"]}
+{"case":"isolation","browser":"149.0.7827.55","externalRequests":0,"forbiddenBusinessRequests":0,"taskWrites":2,"note":"仅临时数据库创建和更新任务；未触发优选、DNS或通知"}

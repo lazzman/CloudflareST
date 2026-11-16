@@ -1,0 +1,64 @@
+=== RUN   TestValidateBoundaries
+=== RUN   TestValidateBoundaries/等待不足
+=== RUN   TestValidateBoundaries/等待下界
+=== RUN   TestValidateBoundaries/等待上界
+=== RUN   TestValidateBoundaries/等待超限
+=== RUN   TestValidateBoundaries/下载为零
+=== RUN   TestValidateBoundaries/IPv4下载超预算
+=== RUN   TestValidateBoundaries/IPv6下载超预算
+=== RUN   TestValidateBoundaries/下载等于预算
+=== RUN   TestValidateBoundaries/关闭族不占预算
+=== RUN   TestValidateBoundaries/关闭下载保留数量
+=== RUN   TestValidateBoundaries/关闭下载禁速度排序
+=== RUN   TestValidateBoundaries/关闭过滤保留顺序
+=== RUN   TestValidateBoundaries/下载不能前移
+=== RUN   TestValidateBoundaries/无地址族
+=== RUN   TestValidateBoundaries/数量为零
+=== RUN   TestValidateBoundaries/预算超上限
+=== RUN   TestValidateBoundaries/延迟为零
+=== RUN   TestValidateBoundaries/延迟负数
+=== RUN   TestValidateBoundaries/非数延迟
+=== RUN   TestValidateBoundaries/负无限延迟
+=== RUN   TestValidateBoundaries/延迟原页面上限
+=== RUN   TestValidateBoundaries/延迟超过原页面上限
+=== RUN   TestValidateBoundaries/最大有限延迟
+=== RUN   TestValidateBoundaries/非数速度
+=== RUN   TestValidateBoundaries/无限延迟
+=== RUN   TestValidateBoundaries/丢包超限
+=== RUN   TestValidateBoundaries/正文窗口超限
+=== RUN   TestValidateBoundaries/前置窗口超限
+=== RUN   TestValidateBoundaries/无效下载协议
+=== RUN   TestValidateBoundaries/无效下载端口
+--- PASS: TestValidateBoundaries (0.00s)
+    --- PASS: TestValidateBoundaries/等待不足 (0.00s)
+    --- PASS: TestValidateBoundaries/等待下界 (0.00s)
+    --- PASS: TestValidateBoundaries/等待上界 (0.00s)
+    --- PASS: TestValidateBoundaries/等待超限 (0.00s)
+    --- PASS: TestValidateBoundaries/下载为零 (0.00s)
+    --- PASS: TestValidateBoundaries/IPv4下载超预算 (0.00s)
+    --- PASS: TestValidateBoundaries/IPv6下载超预算 (0.00s)
+    --- PASS: TestValidateBoundaries/下载等于预算 (0.00s)
+    --- PASS: TestValidateBoundaries/关闭族不占预算 (0.00s)
+    --- PASS: TestValidateBoundaries/关闭下载保留数量 (0.00s)
+    --- PASS: TestValidateBoundaries/关闭下载禁速度排序 (0.00s)
+    --- PASS: TestValidateBoundaries/关闭过滤保留顺序 (0.00s)
+    --- PASS: TestValidateBoundaries/下载不能前移 (0.00s)
+    --- PASS: TestValidateBoundaries/无地址族 (0.00s)
+    --- PASS: TestValidateBoundaries/数量为零 (0.00s)
+    --- PASS: TestValidateBoundaries/预算超上限 (0.00s)
+    --- PASS: TestValidateBoundaries/延迟为零 (0.00s)
+    --- PASS: TestValidateBoundaries/延迟负数 (0.00s)
+    --- PASS: TestValidateBoundaries/非数延迟 (0.00s)
+    --- PASS: TestValidateBoundaries/负无限延迟 (0.00s)
+    --- PASS: TestValidateBoundaries/延迟原页面上限 (0.00s)
+    --- PASS: TestValidateBoundaries/延迟超过原页面上限 (0.00s)
+    --- PASS: TestValidateBoundaries/最大有限延迟 (0.00s)
+    --- PASS: TestValidateBoundaries/非数速度 (0.00s)
+    --- PASS: TestValidateBoundaries/无限延迟 (0.00s)
+    --- PASS: TestValidateBoundaries/丢包超限 (0.00s)
+    --- PASS: TestValidateBoundaries/正文窗口超限 (0.00s)
+    --- PASS: TestValidateBoundaries/前置窗口超限 (0.00s)
+    --- PASS: TestValidateBoundaries/无效下载协议 (0.00s)
+    --- PASS: TestValidateBoundaries/无效下载端口 (0.00s)
+PASS
+ok  	github.com/masgzy/CloudflareST/internal/optimizer	0.007s

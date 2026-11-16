@@ -1,0 +1,19 @@
+=== RUN   TestPostRCAuditStaleFailedAttemptCannotResendSuccessfulChannel
+    zz_post_rc_audit_test.go:39: A=failed→B=success后，旧页面仍引用A；HTTP=409；模拟Notify次数=2；DNS次数=0；全部为本机替身，无真实消息
+--- PASS: TestPostRCAuditStaleFailedAttemptCannotResendSuccessfulChannel (0.12s)
+=== RUN   TestPostRCAuditPendingRetryRejectsAnotherStaleRetry
+=== RUN   TestPostRCAuditPendingRetryRejectsAnotherStaleRetry/pending
+    zz_post_rc_audit_test.go:56: B=pending 时再次引用A：错误=该渠道已有后续尝试，请刷新后仅重发最新失败或未确认的尝试，受理结果=<nil>；事务将回滚，未触发任何发送
+=== RUN   TestPostRCAuditPendingRetryRejectsAnotherStaleRetry/dispatching
+    zz_post_rc_audit_test.go:56: B=dispatching 时再次引用A：错误=该渠道已有后续尝试，请刷新后仅重发最新失败或未确认的尝试，受理结果=<nil>；事务将回滚，未触发任何发送
+=== RUN   TestPostRCAuditPendingRetryRejectsAnotherStaleRetry/running
+    zz_post_rc_audit_test.go:56: B=running 时再次引用A：错误=该渠道已有后续尝试，请刷新后仅重发最新失败或未确认的尝试，受理结果=<nil>；事务将回滚，未触发任何发送
+--- PASS: TestPostRCAuditPendingRetryRejectsAnotherStaleRetry (0.14s)
+    --- PASS: TestPostRCAuditPendingRetryRejectsAnotherStaleRetry/pending (0.05s)
+    --- PASS: TestPostRCAuditPendingRetryRejectsAnotherStaleRetry/dispatching (0.05s)
+    --- PASS: TestPostRCAuditPendingRetryRejectsAnotherStaleRetry/running (0.05s)
+=== RUN   TestPostRCAuditPositiveFiniteLatencyAcceptedByBackend
+    zz_post_rc_audit_test.go:68: 后端任务保存成功，延迟阈值=60001ms，未运行测速
+--- PASS: TestPostRCAuditPositiveFiniteLatencyAcceptedByBackend (0.05s)
+PASS
+ok  	github.com/masgzy/CloudflareST/internal/management	0.321s

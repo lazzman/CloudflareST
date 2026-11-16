@@ -5,13 +5,12 @@
 
 ## 高优先级
 
-- [ ] **ICMP Ping 模式（`-ping`）**
-  - 真实 ICMP RTT 测速，TCPing 被墙或不通时仍可测延迟
-  - 参考：Rust 版 CloudflareST-Rust 的实现思路
-  - 注意：Linux 需要 root 或 CAP_NET_RAW 权限，Windows 需要管理员（或改用系统 ICMP API）；
-    涉及权限检测、降级提示与跨平台构建标签，改动面大，需单独评估
-  - 2026-09 评估结论：需引入 golang.org/x/net（icmp/ipv4）新依赖 + 平台权限降级策略，
-    且无 root 环境可稳定验证实测效果，暂缓；建议独立分支先行验证
+- [x] **ICMP Ping 模式（-ping）**（已实现，待写入下一版 Release 说明）
+  - 真实 ICMP RTT 测速，TCPing 被墙或不通时仍可测延迟；与 -httping 互斥
+  - 共享套接字按载荷令牌匹配应答，避免非特权套接字改写 Echo ID 后串包
+  - Linux / macOS：优先原始套接字，失败则降级为非特权 datagram，并给出权限提示
+  - Windows：优先使用原始套接字；不可用时改用系统 ICMP API（IPv4 IcmpSendEcho2Ex / IcmpSendEcho、IPv6 Icmp6SendEcho2，毫秒精度）
+  - -intf 对 ICMP 同样生效；地区码仍靠 -getcolo（指定 -cfcolo 时自动打开）
 
 - [x] **Linux IP_BIND_ADDRESS_NO_PORT（配合 `-intf`）**（v2.3.5-mod-3.3 完成）
   - 绑定源 IP 时不预先分配端口，connect 阶段才由内核分配，降低高并发下四元组碰撞概率

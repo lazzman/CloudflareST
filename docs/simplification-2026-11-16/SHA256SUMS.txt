@@ -1,0 +1,16 @@
+2ce70190ab5ee0ae09c709e922894a7408dc38af3b0e5ac736423493cb2670f0  docs/simplification-2026-11-16/strategy-http.txt
+2690d013a57802f62542a9e7113c2ac23d328d57394c1574814c53d40a35350d  docs/simplification-2026-11-16/go-full-final.txt
+10988a85d174e912326ecae341051b7a3b433354292470f4ebb6fa65bb13e680  docs/simplification-2026-11-16/go-race-final.txt
+3c37bc3eeac06fc861d47f22844bc474250a01c21f38c5c1608cb9a36faa4e56  docs/simplification-2026-11-16/unit-final.txt
+2d1d074591f42686a5297623a88858b44df047852a6695685b3a03fce1068907  docs/simplification-2026-11-16/build-final.txt
+2de1922dd5f2407958824adc14a2e0a5f07dd0be1af353b8e7bbe3d08eafc8f0  docs/simplification-2026-11-16/simple-browser-final.txt
+68e034620b22e91357b48de1524852944449135cd7288487aa2babb23aacb887  docs/simplification-2026-11-16/regression-scroll.txt
+206df6c1102fbee93c1a2da22b970ef698cb4db38589b0bd2b9868fde8915238  docs/simplification-2026-11-16/regression-scaffold.txt
+6a7ba0da9165fa56860d4b84b178f4b0b22d8b3a97713c00ce93cfd58f745420  docs/simplification-2026-11-16/regression-completeness.txt
+e679c8c754219e47a9f4ac4b982ad7551f8326ed042d2114ba53ce17b2e7ad0b  docs/simplification-2026-11-16/regression-fixes.txt
+7e8dd5cc8f70f05cc20fab19c9344ecc69a18839aad92921b82fae7eef30aeb8  docs/simplification-2026-11-16/legacy-browser-final.txt
+043056d79c02d6f4a90512edf8192b145d5567961eb4f3a47188360d648ec237  docs/simplification-2026-11-16/legacy-fixes-final.txt
+81661468c259c6cae5f910eef0ab945d692eb0a461e314a9fded348cd3dda862  docs/simplification-2026-11-16/live-final.txt
+470fb03408c4f7402c4874da59ba11286ba2a1ef9df07b07d3d7127e59ab482b  docs/simplification-2026-11-16/rc.txt
+d69bdb09350f553ed9bba550ada97681bfca914d64cc8f2c04e735259466d064  docs/simplification-2026-11-16/post-rc.txt
+034e0e922cf92400cd6ea9eb24540817a54ee8c171b9569367fee3ede7c28c41  docs/ip-optimization-simple-preview-2026-11-16.html

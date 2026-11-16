@@ -1,0 +1,9 @@
+
+> cloudflarest-management-web@0.1.0 test:browser:fixes
+> node tests/browser-fixes.mjs
+
+Web 修复浏览器回归通过：
+- F-08：独立数量、边界校验/焦点、空值默认、保存/回读、320px 与双主题
+- F-04：洛杉矶浏览器中 UTC/上海显示一致，计划/运行/日志/队列/目标及筛选同口径
+- F-03：丢响应→刷新→重登保留原号与锁，拒绝新号/允许无关操作，仅 GET 核查
+- F-03：旧格式 pending ID 明确提示且保守阻止新建

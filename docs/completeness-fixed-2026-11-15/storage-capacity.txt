@@ -1,0 +1,5 @@
+=== RUN   TestRunStorageMaximumCandidateEnvelope
+    run_store_test.go:203: 虚构候选200000（两族各100000）；写入=1.89107025s；重启后单页=46.508ms；进度响应=1061字节；数据库=124440576字节；不代表真实网络测速压测
+--- PASS: TestRunStorageMaximumCandidateEnvelope (2.06s)
+PASS
+ok  	github.com/masgzy/CloudflareST/internal/management	2.077s

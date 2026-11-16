@@ -1,0 +1,31 @@
+npm notice run cloudflarest-management-web@0.1.0 build
+npm notice run vue-tsc --noEmit && vite build
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 83 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                                                  0.52 kB │ gzip:  0.34 kB
+dist/.vite/manifest.json                                                         7.96 kB │ gzip:  0.91 kB
+dist/assets/index-DYzdPyB_.css                                                  12.82 kB │ gzip:  3.64 kB
+dist/assets/NotFoundPage-Cbclymmj.js                                             0.54 kB │ gzip:  0.44 kB
+dist/assets/PagerControl.vue_vue_type_script_setup_true_lang-BoSWhghV.js         0.61 kB │ gzip:  0.41 kB
+dist/assets/ResourceState.vue_vue_type_script_setup_true_lang-CFgkZ5FT.js        0.82 kB │ gzip:  0.58 kB
+dist/assets/serialize-3WElZqnO.js                                                1.53 kB │ gzip:  0.91 kB
+dist/assets/MutationState.vue_vue_type_script_setup_true_lang-B7DaBR4O.js        1.93 kB │ gzip:  1.08 kB
+dist/assets/LoginPage-DzjHxwk2.js                                                2.09 kB │ gzip:  1.28 kB
+dist/assets/TargetFacts.vue_vue_type_script_setup_true_lang-DidypByH.js          2.42 kB │ gzip:  1.20 kB
+dist/assets/TaskActions.vue_vue_type_script_setup_true_lang-b3kn0Cao.js          2.92 kB │ gzip:  1.45 kB
+dist/assets/SettingsPage-CU_hmtTQ.js                                             3.28 kB │ gzip:  1.83 kB
+dist/assets/ProtectionControl.vue_vue_type_script_setup_true_lang-Cls6budl.js    3.35 kB │ gzip:  1.86 kB
+dist/assets/TargetSelector.vue_vue_type_script_setup_true_lang-BZXzcJmA.js       3.54 kB │ gzip:  1.75 kB
+dist/assets/TaskListPage-BDPRZKhs.js                                             4.09 kB │ gzip:  2.08 kB
+dist/assets/QueuePage-DuwtqRq5.js                                                4.30 kB │ gzip:  1.99 kB
+dist/assets/TaskOverviewPage-cqp5QLi2.js                                         5.02 kB │ gzip:  2.19 kB
+dist/assets/LogsPage-DvA4eH7F.js                                                 5.10 kB │ gzip:  2.37 kB
+dist/assets/ConnectionsPage-D41AmO9T.js                                          7.35 kB │ gzip:  3.23 kB
+dist/assets/RunListPage-CXDqpkFA.js                                              9.67 kB │ gzip:  3.97 kB
+dist/assets/TaskEditorPage-YBt62eu_.js                                          20.03 kB │ gzip:  7.21 kB
+dist/assets/RunDetailPage-C_dBQmV7.js                                           21.64 kB │ gzip:  7.72 kB
+dist/assets/index-DkmXADTc.js                                                  122.72 kB │ gzip: 48.33 kB
+✓ built in 509ms

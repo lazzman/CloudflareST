@@ -1,0 +1,113 @@
+package management
+
+import (
+	"context"
+	"database/sql"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/masgzy/CloudflareST/internal/integrations"
+)
+
+func auditRequest(t *testing.T, fixture *acceptanceFixture, method, path, revision string, body any) *httptest.ResponseRecorder {
+	t.Helper()
+	token := "FAKE_AUDIT_SESSION"
+	session := sessionRecord{ID: fixture.service.digest([]byte(token)), CSRF: "FAKE_AUDIT_CSRF", PasswordVersion: fixture.service.passwordVersion, ExpiresAt: fixture.clock.Now().Add(time.Hour)}
+	acceptancePut(t, fixture, "sessions", session.ID, session)
+	payload, err := json.Marshal(body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request := httptest.NewRequest(method, "http://audit.invalid"+path, strings.NewReader(string(payload)))
+	request.AddCookie(&http.Cookie{Name: "cfst_session", Value: token})
+	request.Header.Set("X-CSRF-Token", session.CSRF)
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("If-Match", revision)
+	response := httptest.NewRecorder()
+	fixture.service.Handler().ServeHTTP(response, request)
+	return response
+}
+
+func TestAuditTelegramBotIdentityMustNotChangeInPlace(t *testing.T) {
+	fixture := newAcceptanceFixture(t, acceptanceNow(), nil, nil)
+	ciphertext, err := fixture.service.encrypt(map[string]string{"bot_token": "100001" + ":" + "FAKE_only_test_token", "chat_id": "-100999"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	connection := Connection{ID: "audit-telegram", Kind: "telegram", Name: "验收虚构连接", Revision: 1, CredentialsSet: true, Ciphertext: ciphertext}
+	acceptancePut(t, fixture, "connections", connection.ID, connection)
+	task := acceptanceTask("验收机器人身份")
+	task.Notifications.Telegram = Channel{Enabled: true, ConnectionID: connection.ID}
+	saved, err := acceptanceSaveTask(fixture, task, "", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	response := auditRequest(t, fixture, http.MethodPatch, "/api/v1/connections/"+connection.ID, "1", map[string]any{
+		"operation_id": "audit-change-bot-identity",
+		"connection": map[string]any{"kind": "telegram", "name": "验收虚构连接", "account_id": "", "secrets": map[string]string{"bot_token": "200002" + ":" + "FAKE_only_test_token", "chat_id": "-100999"}},
+	})
+	current := acceptanceGet[Connection](t, fixture, "connections", connection.ID)
+	credential, err := fixture.service.credentials(current)
+	if err != nil {
+		t.Fatal(err)
+	}
+	unchangedTask := acceptanceGet[Task](t, fixture, "tasks", saved.ID)
+	botID := strings.SplitN(credential.Secrets["bot_token"], ":", 2)[0]
+	updates, notifications := fixture.provider.callCounts()
+	t.Logf("HTTP=%d，机器人ID 100001→%s，任务仍引用原连接=%t，DNS/通知调用=%d/%d", response.Code, botID, unchangedTask.Notifications.Telegram.ConnectionID == connection.ID, updates, notifications)
+	if response.Code != http.StatusConflict {
+		t.Errorf("AC-76：机器人身份改变必须拒绝原地替换并要求新连接，实际HTTP=%d", response.Code)
+	}
+}
+
+func TestAuditCancelledNotificationFailureMustBeManuallyRetryable(t *testing.T) {
+	provider := newAcceptanceProvider()
+	provider.notify = func(context.Context, integrations.Connection, string) integrations.Outcome {
+		return integrations.Outcome{State: "failed", Reason: "虚构失败，无外部请求"}
+	}
+	fixture := newAcceptanceFixture(t, acceptanceNow(), nil, provider)
+	acceptanceConnection(t, fixture, "audit-cancel-channel", "telegram", "")
+	task := acceptanceTask("验收取消摘要")
+	task.ID = "audit-cancel-task"
+	task.Notifications.Telegram = Channel{Enabled: true, ConnectionID: "audit-cancel-channel"}
+	var cancelled Run
+	acceptanceTx(t, fixture, func(tx *sql.Tx) error {
+		run, err := enqueue(tx, task, "manual", "", fixture.service)
+		if err != nil {
+			return err
+		}
+		_, result, err := fixture.service.cancelRun(tx, run.ID)
+		if err == nil {
+			cancelled = result.(Run)
+		}
+		return err
+	})
+	acceptanceWake(fixture)
+	first := acceptanceWaitDelivery(t, fixture, cancelled.ID, cancelled.Deliveries[0].ID, "failed")
+	response := auditRequest(t, fixture, http.MethodPost, "/api/v1/runs/"+cancelled.ID+"/notifications", "", map[string]any{
+		"operation_id": "audit-retry-cancel-summary", "risk_acknowledged": true,
+		"channels": []notificationItem{{Kind: "telegram", ConnectionID: "audit-cancel-channel", PriorAttemptID: first.ID}},
+	})
+	if response.Code != http.StatusAccepted {
+		t.Fatalf("手动重发未受理：%d %s", response.Code, response.Body.String())
+	}
+	deadline := time.Now().Add(3 * time.Second)
+	var retry Delivery
+	for time.Now().Before(deadline) {
+		run := acceptanceGet[Run](t, fixture, "runs", cancelled.ID)
+		retry = run.Deliveries[len(run.Deliveries)-1]
+		if terminalDelivery(retry.State) {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	_, notifications := provider.callCounts()
+	t.Logf("首次取消摘要=failed；重发HTTP=%d；重发状态=%s，Cancellation=%t；累计模拟Notify=%d；原因=%s", response.Code, retry.State, retry.Cancellation, notifications, retry.Reason)
+	if notifications != 2 || retry.State == "skipped" {
+		t.Errorf("AC-73：确认风险后应调用通知适配器重发取消摘要；实际未调用且跳过")
+	}
+}

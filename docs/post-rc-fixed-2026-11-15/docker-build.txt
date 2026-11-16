@@ -1,0 +1,71 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.08kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/node:22-alpine
+#2 DONE 4.0s
+
+#3 [internal] load metadata for docker.io/library/golang:1.26-alpine
+#3 DONE 4.3s
+
+#4 [internal] load metadata for docker.io/library/alpine:3.22
+#4 DONE 4.6s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 176B done
+#5 DONE 0.0s
+
+#6 [backend 1/7] FROM docker.io/library/golang:1.26-alpine@sha256:30b1e546a9c7fa3b747c2bdba3a0c7bdf3a02ebb4c5b8405d2f948d7e8aac4ec
+#6 resolve docker.io/library/golang:1.26-alpine@sha256:30b1e546a9c7fa3b747c2bdba3a0c7bdf3a02ebb4c5b8405d2f948d7e8aac4ec done
+#6 DONE 0.0s
+
+#7 [stage-2 1/3] FROM docker.io/library/alpine:3.22@sha256:49340b346798875b5592e5d420241f2f9cfba5f47e62ebb1446a1b34734e898f
+#7 resolve docker.io/library/alpine:3.22@sha256:49340b346798875b5592e5d420241f2f9cfba5f47e62ebb1446a1b34734e898f done
+#7 CACHED
+
+#8 [web 1/6] FROM docker.io/library/node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
+#8 resolve docker.io/library/node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a 0.0s done
+#8 DONE 0.0s
+
+#9 [internal] load build context
+#9 transferring context: 102.17kB done
+#9 DONE 0.0s
+
+#10 [backend 2/7] WORKDIR /src
+#10 CACHED
+
+#11 [web 2/6] WORKDIR /src/internal/management/web
+#11 CACHED
+
+#12 [backend 3/7] COPY go.mod go.sum ./
+#12 CACHED
+
+#13 [web 3/6] COPY internal/management/web/package.json internal/management/web/package-lock.json ./
+#13 CACHED
+
+#14 [backend 4/7] RUN go mod download
+#14 0.053 go: github.com/VividCortex/ewma@v1.2.0: Get "https://proxy.golang.org/github.com/%21vivid%21cortex/ewma/@v/v1.2.0.mod": dial tcp: lookup proxy.golang.org on 1.1.1.1:53: dial udp 1.1.1.1:53: connect: network is unreachable
+#14 ERROR: process "/bin/sh -c go mod download" did not complete successfully: exit code: 1
+
+#15 [web 4/6] RUN npm ci --ignore-scripts
+#15 CANCELED
+
+#16 [stage-2 2/3] RUN addgroup -S -g 10001 cfst && adduser -S -D -H -u 10001 -G cfst cfst     && mkdir -p /var/lib/cfst /tmp     && chown -R 10001:10001 /var/lib/cfst
+#16 DONE 0.1s
+------
+ > [backend 4/7] RUN go mod download:
+0.053 go: github.com/VividCortex/ewma@v1.2.0: Get "https://proxy.golang.org/github.com/%21vivid%21cortex/ewma/@v/v1.2.0.mod": dial tcp: lookup proxy.golang.org on 1.1.1.1:53: dial udp 1.1.1.1:53: connect: network is unreachable
+------
+Dockerfile:11
+--------------------
+   9 |     WORKDIR /src
+  10 |     COPY go.mod go.sum ./
+  11 | >>> RUN go mod download
+  12 |     COPY . ./
+  13 |     COPY --from=web /src/internal/management/web/dist ./internal/management/web/dist
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c go mod download" did not complete successfully: exit code: 1
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/lwsurkdi38hkilhi7e075etgb

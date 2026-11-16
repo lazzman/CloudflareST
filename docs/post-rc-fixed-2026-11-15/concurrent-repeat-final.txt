@@ -1,0 +1,32 @@
+=== RUN   TestPostRCNotificationRetryConcurrentRequestsAndIdempotency
+    notification_retry_test.go:194: 并发新操作号：202=1，409=1；完成前后同号重放不新发；模拟通知=1，DNS=0
+--- PASS: TestPostRCNotificationRetryConcurrentRequestsAndIdempotency (0.98s)
+=== RUN   TestPostRCNotificationRetryConcurrentRequestsAndIdempotency
+    notification_retry_test.go:194: 并发新操作号：202=1，409=1；完成前后同号重放不新发；模拟通知=1，DNS=0
+--- PASS: TestPostRCNotificationRetryConcurrentRequestsAndIdempotency (0.97s)
+=== RUN   TestPostRCNotificationRetryConcurrentRequestsAndIdempotency
+    notification_retry_test.go:194: 并发新操作号：202=1，409=1；完成前后同号重放不新发；模拟通知=1，DNS=0
+--- PASS: TestPostRCNotificationRetryConcurrentRequestsAndIdempotency (1.00s)
+=== RUN   TestPostRCNotificationRetryConcurrentRequestsAndIdempotency
+    notification_retry_test.go:194: 并发新操作号：202=1，409=1；完成前后同号重放不新发；模拟通知=1，DNS=0
+--- PASS: TestPostRCNotificationRetryConcurrentRequestsAndIdempotency (0.98s)
+=== RUN   TestPostRCNotificationRetryConcurrentRequestsAndIdempotency
+    notification_retry_test.go:194: 并发新操作号：202=1，409=1；完成前后同号重放不新发；模拟通知=1，DNS=0
+--- PASS: TestPostRCNotificationRetryConcurrentRequestsAndIdempotency (0.99s)
+=== RUN   TestPostRCNotificationRetryConcurrentRequestsAndIdempotency
+    notification_retry_test.go:194: 并发新操作号：202=1，409=1；完成前后同号重放不新发；模拟通知=1，DNS=0
+--- PASS: TestPostRCNotificationRetryConcurrentRequestsAndIdempotency (0.98s)
+=== RUN   TestPostRCNotificationRetryConcurrentRequestsAndIdempotency
+    notification_retry_test.go:194: 并发新操作号：202=1，409=1；完成前后同号重放不新发；模拟通知=1，DNS=0
+--- PASS: TestPostRCNotificationRetryConcurrentRequestsAndIdempotency (0.99s)
+=== RUN   TestPostRCNotificationRetryConcurrentRequestsAndIdempotency
+    notification_retry_test.go:194: 并发新操作号：202=1，409=1；完成前后同号重放不新发；模拟通知=1，DNS=0
+--- PASS: TestPostRCNotificationRetryConcurrentRequestsAndIdempotency (0.98s)
+=== RUN   TestPostRCNotificationRetryConcurrentRequestsAndIdempotency
+    notification_retry_test.go:194: 并发新操作号：202=1，409=1；完成前后同号重放不新发；模拟通知=1，DNS=0
+--- PASS: TestPostRCNotificationRetryConcurrentRequestsAndIdempotency (0.98s)
+=== RUN   TestPostRCNotificationRetryConcurrentRequestsAndIdempotency
+    notification_retry_test.go:194: 并发新操作号：202=1，409=1；完成前后同号重放不新发；模拟通知=1，DNS=0
+--- PASS: TestPostRCNotificationRetryConcurrentRequestsAndIdempotency (0.98s)
+PASS
+ok  	github.com/masgzy/CloudflareST/internal/management	10.874s

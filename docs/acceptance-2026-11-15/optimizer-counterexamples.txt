@@ -1,0 +1,42 @@
+=== RUN   TestReadOnlyAuditMappedCIDRBudget
+    zz_readonly_audit_test.go:55: 实际 IPv4 候选=192.0.2.33，来源=[source-002]，探测=1，合格=true
+    zz_readonly_audit_test.go:55: 实际 IPv4 候选=192.0.2.44，来源=[source-002]，探测=1，合格=true
+    zz_readonly_audit_test.go:55: 实际 IPv4 候选=192.0.2.55，来源=[source-002]，探测=1，合格=true
+    zz_readonly_audit_test.go:55: 实际 IPv4 候选=192.0.2.66，来源=[source-002]，探测=1，合格=true
+    zz_readonly_audit_test.go:55: 实际 IPv4 候选=198.51.100.10，来源=[source-001]，探测=1，合格=true
+    zz_readonly_audit_test.go:58: 状态=completed，IPv4 实际=5，上限=1，预算=[{RequestedInitial:0 ValidInitial:5 TriggerCount:0 Remaining:0 InitialReason:已按所选来源的有效请求数生成初采候选，不承诺用满预算 InitialAllocated:0 Family:ipv4 Limit:1 Directed:1 InitialLimit:0 Sampled:0 ExpansionLimit:0 Expanded:0 Used:1 Reason:累计预算已用完 Expansions:[]} {RequestedInitial:4 ValidInitial:0 TriggerCount:0 Remaining:10 InitialReason:初采按预算、来源容量与去重缩减；未实际使用名额可供单轮扩采 InitialAllocated:4 Family:ipv6 Limit:10 Directed:0 InitialLimit:8 Sampled:0 ExpansionLimit:10 Expanded:0 Used:0 Reason:没有成功的初始延迟结果，未触发扩采 Expansions:[]}]
+    zz_readonly_audit_test.go:60: AC-38/42：实际 IPv4 候选 5 超过上限 1
+--- FAIL: TestReadOnlyAuditMappedCIDRBudget (0.00s)
+=== RUN   TestReadOnlyAuditMappedCIDRDisabledFamily
+    zz_readonly_audit_test.go:70: 状态=no_results，错误=<nil>，候选=[{IP:192.0.2.33 Family:ipv4 Sources:[source-001] LatencyMS:<nil> LossPercent:<nil> SpeedMBS:<nil> Eligible:false Rank:0 State:failed Reason:没有成功的延迟探测结果 Steps:[{Stage:latency State:skipped Reason:前置测量未通过，跳过后续筛选} {Stage:loss State:skipped Reason:前置测量未通过，跳过后续筛选} {Stage:download State:disabled Reason:本次配置未启用此项过滤}] DownloadBytes:0 DownloadSeconds:0 DownloadEnd: Origin:sampled ProbeAttempts:0 ProbeSuccesses:0 ProbeFailures:0} {IP:192.0.2.44 Family:ipv4 Sources:[source-001] LatencyMS:<nil> LossPercent:<nil> SpeedMBS:<nil> Eligible:false Rank:0 State:failed Reason:没有成功的延迟探测结果 Steps:[{Stage:latency State:skipped Reason:前置测量未通过，跳过后续筛选} {Stage:loss State:skipped Reason:前置测量未通过，跳过后续筛选} {Stage:download State:disabled Reason:本次配置未启用此项过滤}] DownloadBytes:0 DownloadSeconds:0 DownloadEnd: Origin:sampled ProbeAttempts:0 ProbeSuccesses:0 ProbeFailures:0} {IP:192.0.2.55 Family:ipv4 Sources:[source-001] LatencyMS:<nil> LossPercent:<nil> SpeedMBS:<nil> Eligible:false Rank:0 State:failed Reason:没有成功的延迟探测结果 Steps:[{Stage:latency State:skipped Reason:前置测量未通过，跳过后续筛选} {Stage:loss State:skipped Reason:前置测量未通过，跳过后续筛选} {Stage:download State:disabled Reason:本次配置未启用此项过滤}] DownloadBytes:0 DownloadSeconds:0 DownloadEnd: Origin:sampled ProbeAttempts:0 ProbeSuccesses:0 ProbeFailures:0} {IP:192.0.2.66 Family:ipv4 Sources:[source-001] LatencyMS:<nil> LossPercent:<nil> SpeedMBS:<nil> Eligible:false Rank:0 State:failed Reason:没有成功的延迟探测结果 Steps:[{Stage:latency State:skipped Reason:前置测量未通过，跳过后续筛选} {Stage:loss State:skipped Reason:前置测量未通过，跳过后续筛选} {Stage:download State:disabled Reason:本次配置未启用此项过滤}] DownloadBytes:0 DownloadSeconds:0 DownloadEnd: Origin:sampled ProbeAttempts:0 ProbeSuccesses:0 ProbeFailures:0}]，预算=[{RequestedInitial:4 ValidInitial:0 TriggerCount:0 Remaining:10 InitialReason:初采按预算、来源容量与去重缩减；未实际使用名额可供单轮扩采 InitialAllocated:4 Family:ipv6 Limit:10 Directed:0 InitialLimit:8 Sampled:0 ExpansionLimit:10 Expanded:0 Used:0 Reason:没有成功的初始延迟结果，未触发扩采 Expansions:[]}]
+    zz_readonly_audit_test.go:73: AC-38：关闭 IPv4 后仍生成候选 192.0.2.33
+    zz_readonly_audit_test.go:73: AC-38：关闭 IPv4 后仍生成候选 192.0.2.44
+    zz_readonly_audit_test.go:73: AC-38：关闭 IPv4 后仍生成候选 192.0.2.55
+    zz_readonly_audit_test.go:73: AC-38：关闭 IPv4 后仍生成候选 192.0.2.66
+--- FAIL: TestReadOnlyAuditMappedCIDRDisabledFamily (0.00s)
+=== RUN   TestReadOnlyAuditExpansionAllMatchingSources
+    zz_readonly_audit_test.go:109: 遗漏 CIDR 来源：IP=192.0.2.0，来源=[source-001]，生成方式=expanded
+    zz_readonly_audit_test.go:109: 遗漏 CIDR 来源：IP=192.0.2.1，来源=[source-001]，生成方式=expanded
+    zz_readonly_audit_test.go:109: 遗漏 CIDR 来源：IP=192.0.2.2，来源=[source-001]，生成方式=expanded
+    zz_readonly_audit_test.go:109: 遗漏 CIDR 来源：IP=192.0.2.3，来源=[source-001]，生成方式=expanded
+    zz_readonly_audit_test.go:109: 遗漏 CIDR 来源：IP=192.0.2.5，来源=[source-001]，生成方式=expanded
+    zz_readonly_audit_test.go:109: 遗漏 CIDR 来源：IP=192.0.2.6，来源=[source-001]，生成方式=expanded
+    zz_readonly_audit_test.go:109: 遗漏 CIDR 来源：IP=192.0.2.7，来源=[source-001]，生成方式=expanded
+    zz_readonly_audit_test.go:109: 遗漏 CIDR 来源：IP=192.0.2.8，来源=[source-001]，生成方式=expanded
+    zz_readonly_audit_test.go:109: 遗漏 CIDR 来源：IP=192.0.2.9，来源=[source-001]，生成方式=expanded
+    zz_readonly_audit_test.go:109: 遗漏 CIDR 来源：IP=192.0.2.10，来源=[source-001]，生成方式=expanded
+    zz_readonly_audit_test.go:109: 遗漏 CIDR 来源：IP=192.0.2.11，来源=[source-001]，生成方式=expanded
+    zz_readonly_audit_test.go:109: 遗漏 CIDR 来源：IP=192.0.2.12，来源=[source-001]，生成方式=expanded
+    zz_readonly_audit_test.go:109: 遗漏 CIDR 来源：IP=192.0.2.13，来源=[source-001]，生成方式=expanded
+    zz_readonly_audit_test.go:109: 遗漏 CIDR 来源：IP=192.0.2.14，来源=[source-001]，生成方式=expanded
+    zz_readonly_audit_test.go:109: 遗漏 CIDR 来源：IP=192.0.2.15，来源=[source-001]，生成方式=expanded
+    zz_readonly_audit_test.go:112: 总候选=256，落入 /28 的候选=16，保留来源标记=1，来源统计=[{ID:source-001 Source:{Kind:ip Value:192.0.2.200 Count:0} Status:completed Error: ResolvedIPs:[] CIDRs:[] CandidateCount:256} {ID:source-002 Source:{Kind:cidr Value:192.0.2.0/28 Count:1} Status:completed Error: ResolvedIPs:[] CIDRs:[192.0.2.0/28] CandidateCount:1}]
+    zz_readonly_audit_test.go:114: AC-09/40：15 个命中来源的 IP 丢失该来源标记
+--- FAIL: TestReadOnlyAuditExpansionAllMatchingSources (0.00s)
+=== RUN   TestReadOnlyAuditCancelDuringSources
+    zz_readonly_audit_test.go:139: 曾报告已处理来源=1；返回状态=cancelled，错误=运行已取消: context canceled，保留来源=0，保留候选=0
+    zz_readonly_audit_test.go:144: AC-63：取消抹掉已完成解析的来源及解析地址
+--- FAIL: TestReadOnlyAuditCancelDuringSources (0.00s)
+FAIL
+FAIL	github.com/masgzy/CloudflareST/internal/optimizer	0.011s
+FAIL

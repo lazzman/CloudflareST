@@ -1,0 +1,12 @@
+bda10c6083b4052187675d668a8a0dc086f5ff08e5e734f6d5f60fe5db155f5e  docs/final-confirmation-2026-11-15/README.md
+1ae48d1253b644d7973d614cf30cb454dae65280b27ddc8e10a88a38533f1afe  docs/final-confirmation-2026-11-15/browser-all.txt
+81661468c259c6cae5f910eef0ab945d692eb0a461e314a9fded348cd3dda862  docs/final-confirmation-2026-11-15/browser-live.txt
+c5e3ddafbc6b482e9d8c61756769d2332f05b32055abed03fdcbfd0206dc2693  docs/final-confirmation-2026-11-15/check-target-serial.mjs
+abd6a1823edd021291207f2de631cc9c22a2770fc6658f117227824f6aa27f2d  docs/final-confirmation-2026-11-15/frontend-tests.txt
+cfe507059febe35bb7ce2dfdcbae9fc2ee436fa07a62842436eb072bda8bbdde  docs/final-confirmation-2026-11-15/go-full.txt
+ab3e66bc48a0cb147fe3d36d0b932c922b9e357ae5d9be4f8cae99424b58f9cd  docs/final-confirmation-2026-11-15/post-rc-regression.txt
+17cf4d855e3520a45bd791535e19fc06952407360dc6feb9dc6107390a606b02  docs/final-confirmation-2026-11-15/review-notes.md
+fdfcf2eadea538be7c7880d479a4814cd20354b43350d0b84e3477c2ae1ee58b  docs/final-confirmation-2026-11-15/source-SHA256SUMS
+597d4a67c51d148c139a7572d4d323d6b787b750d9cf73181abb831f69cfb1d9  docs/final-confirmation-2026-11-15/target-serial.txt
+ea5022fd38a1fdc05c40b08b12c4dcdad0c98762058a8fe1d4cd11fd2b3ac7b2  docs/final-confirmation-2026-11-15/target_serial_test.go.txt
+915f9108103f4bea8086fcfee259d1d81d41f7d77c0b9886661eddf3af264673  docs/ip-optimization-final-functional-review-2026-11-15.md

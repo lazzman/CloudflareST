@@ -1,0 +1,87 @@
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/success/retry-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/success/other-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/pending/retry-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/pending/other-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/dispatching/retry-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/dispatching/other-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/running/retry-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/running/other-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/failed/retry-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/failed/other-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/unconfirmed/retry-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/unconfirmed/other-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/skipped/retry-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/skipped/other-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/success/retry-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/success/other-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/pending/retry-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/pending/other-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/dispatching/retry-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/dispatching/other-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/running/retry-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/running/other-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/failed/retry-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/failed/other-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/unconfirmed/retry-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/unconfirmed/other-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/skipped/retry-channel
+=== RUN   TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/skipped/other-channel
+--- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts (0.10s)
+    --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram (0.05s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/success/retry-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/success/other-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/pending/retry-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/pending/other-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/dispatching/retry-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/dispatching/other-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/running/retry-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/running/other-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/failed/retry-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/failed/other-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/unconfirmed/retry-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/unconfirmed/other-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/skipped/retry-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/telegram/skipped/other-channel (0.00s)
+    --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom (0.05s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/success/retry-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/success/other-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/pending/retry-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/pending/other-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/dispatching/retry-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/dispatching/other-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/running/retry-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/running/other-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/failed/retry-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/failed/other-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/unconfirmed/retry-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/unconfirmed/other-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/skipped/retry-channel (0.00s)
+        --- PASS: TestPostRCNotificationRetryRejectsSupersededAttempts/wecom/skipped/other-channel (0.00s)
+=== RUN   TestPostRCNotificationRetryKeepsLatestEligibility
+=== RUN   TestPostRCNotificationRetryKeepsLatestEligibility/telegram/failed/completed
+=== RUN   TestPostRCNotificationRetryKeepsLatestEligibility/telegram/failed/cancelled
+=== RUN   TestPostRCNotificationRetryKeepsLatestEligibility/telegram/unconfirmed/completed
+=== RUN   TestPostRCNotificationRetryKeepsLatestEligibility/telegram/unconfirmed/cancelled
+=== RUN   TestPostRCNotificationRetryKeepsLatestEligibility/wecom/failed/completed
+=== RUN   TestPostRCNotificationRetryKeepsLatestEligibility/wecom/failed/cancelled
+=== RUN   TestPostRCNotificationRetryKeepsLatestEligibility/wecom/unconfirmed/completed
+=== RUN   TestPostRCNotificationRetryKeepsLatestEligibility/wecom/unconfirmed/cancelled
+--- PASS: TestPostRCNotificationRetryKeepsLatestEligibility (0.39s)
+    --- PASS: TestPostRCNotificationRetryKeepsLatestEligibility/telegram/failed/completed (0.05s)
+    --- PASS: TestPostRCNotificationRetryKeepsLatestEligibility/telegram/failed/cancelled (0.05s)
+    --- PASS: TestPostRCNotificationRetryKeepsLatestEligibility/telegram/unconfirmed/completed (0.05s)
+    --- PASS: TestPostRCNotificationRetryKeepsLatestEligibility/telegram/unconfirmed/cancelled (0.05s)
+    --- PASS: TestPostRCNotificationRetryKeepsLatestEligibility/wecom/failed/completed (0.05s)
+    --- PASS: TestPostRCNotificationRetryKeepsLatestEligibility/wecom/failed/cancelled (0.05s)
+    --- PASS: TestPostRCNotificationRetryKeepsLatestEligibility/wecom/unconfirmed/completed (0.05s)
+    --- PASS: TestPostRCNotificationRetryKeepsLatestEligibility/wecom/unconfirmed/cancelled (0.05s)
+=== RUN   TestPostRCNotificationRetryConcurrentRequestsAndIdempotency
+    notification_retry_test.go:194: 并发新操作号：202=1，409=1；完成前后同号重放不新发；模拟通知=1，DNS=0
+--- PASS: TestPostRCNotificationRetryConcurrentRequestsAndIdempotency (0.11s)
+=== RUN   TestPostRCNotificationRetryBatchConflictRollsBack
+--- PASS: TestPostRCNotificationRetryBatchConflictRollsBack (0.05s)
+PASS
+ok  	github.com/masgzy/CloudflareST/internal/management	0.653s

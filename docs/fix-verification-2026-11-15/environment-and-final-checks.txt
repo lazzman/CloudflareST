@@ -1,0 +1,60 @@
+记录时间：2026-11-15T02:10:27.377Z
+以下静态检查与清理核对在归档时实际执行；未重复外部投递或重新启动任务。
+
+$ go vet ./...
+exit_code=0
+stdout: （无输出）
+stderr: （无输出）
+
+$ git diff --check
+exit_code=0
+stdout: （无输出）
+stderr: （无输出）
+
+$ go version
+exit_code=0
+go version go1.26.2 darwin/arm64
+stderr: （无输出）
+
+$ node --version
+exit_code=0
+v22.23.4
+stderr: （无输出）
+
+$ npm --version
+exit_code=0
+10.9.9
+stderr: （无输出）
+
+$ docker version
+exit_code=0
+29.9.3 / 29.9.3
+stderr: （无输出）
+
+$ docker image inspect cloudflarest-management:r3-fixed-acceptance
+exit_code=0
+sha256:fdfc9066dcb2489c2749da65b8e2bcdaba567b8eaeea857515f8513d3c4a48f1 2026-11-15T02:01:17.987689054Z linux/arm64
+stderr: （无输出）
+
+$ docker ps -a --filter name=cfst-r3-test
+exit_code=0
+stdout: （无输出）
+stderr: （无输出）
+
+$ docker volume ls --filter name=cfst-r3-test
+exit_code=0
+stdout: （无输出）
+stderr: （无输出）
+
+$ lsof -nP -iTCP:5187 -sTCP:LISTEN
+exit_code=1
+stdout: （无输出）
+stderr: （无输出）
+
+$ lsof -nP -iTCP:5191 -sTCP:LISTEN
+exit_code=1
+stdout: （无输出）
+stderr: （无输出）
+
+临时真实 Go 测试服务：未发现 cfst-fixed-boundaries / cfst-r3-live 服务进程
+

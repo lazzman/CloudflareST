@@ -1,0 +1,4 @@
+{"case":"run-failure-reason","mainStatusVisible":true,"terminalReasonVisible":true,"optimizerErrorVisible":true}
+{"case":"restart-interruption-reason","mainStatusVisible":true,"reasonVisible":true,"note":"该原因文本来自后端recoverRuns实际分支；状态可见，来源与候选没有可替代原因"}
+{"case":"unknown-operation-recovery","firstCode":"NETWORK_ERROR","lookupCode":"operation_unknown","secondCode":"ACTION_UNCONFIRMED","pendingCount":1,"transportPostAttempts":1,"availableActions":["关闭","只读查询","查询收据"],"hasExplicitRiskAcceptedNewAttempt":false}
+{"case":"isolation","browser":"157.0.8103.78","outsideRequests":0,"realBusinessRequests":0,"note":"正常退出仅表示观测完成，不代表功能通过"}

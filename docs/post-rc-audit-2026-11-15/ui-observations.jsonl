@@ -1,0 +1,2 @@
+{"case":"latency-upper-bound","input":60001,"uiBlocksSave":true,"clientError":"请输入大于 0 且不大于 60000 的数值","businessWrites":0,"expected":"PRD只要求有限且大于0；后端允许60001"}
+{"case":"isolation","browser":"157.0.8103.78","externalRequests":0,"realBusinessRequests":0,"note":"正常退出表示观测完成，非本项验收通过"}
