@@ -35,8 +35,18 @@ func TestDownloadEarlyCompletionAndPinnedHost(t *testing.T) {
 		if !strings.HasPrefix(request.Host, "download.invalid:") || request.URL.Path != "/file" || request.Header.Get("Accept-Encoding") != "identity" {
 			t.Errorf("Host、路径或编码错误: %+v", request)
 		}
-		writer.Write([]byte(strings.Repeat("a", 10000)))
+		writer.Header().Set("Content-Length", "10000")
+		writer.WriteHeader(http.StatusOK)
+		writer.(http.Flusher).Flush()
+		timer := time.NewTimer(50 * time.Millisecond)
+		defer timer.Stop()
+		select {
+		case <-timer.C:
+			writer.Write([]byte(strings.Repeat("a", 10000)))
+		case <-request.Context().Done():
+		}
 	})
+	request.Window = time.Second
 	sample, err := downloadCandidate(context.Background(), request)
 	if err != nil || sample.End != "completed" || sample.Bytes != 10000 || sample.Seconds <= 0 || sample.Seconds >= request.Window.Seconds() || atomic.LoadInt32(&calls) != 1 {
 		t.Fatalf("提前完成样本错误: %+v, %v, %d", sample, err, atomic.LoadInt32(&calls))
