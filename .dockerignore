@@ -1,0 +1,16 @@
+.git
+.agents
+.claude
+data
+**/node_modules
+**/test-results
+**/.vite
+**/dist
+*.exe
+*.csv
+*.bak
+Releases
+docs
+repo
+CloudflareST
+cfst-web

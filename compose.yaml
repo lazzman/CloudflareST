@@ -1,0 +1,26 @@
+services:
+  cfst-web:
+    build: .
+    restart: unless-stopped
+    environment:
+      CFST_LISTEN: 0.0.0.0:8080
+      CFST_DATA_DIR: /var/lib/cfst
+      CFST_ADMIN_PASSWORD: "${CFST_ADMIN_PASSWORD:-}"
+      CFST_SECURE_COOKIE: "${CFST_SECURE_COOKIE:-false}"
+      CFST_TRUSTED_PROXIES: "${CFST_TRUSTED_PROXIES:-}"
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - cfst-data:/var/lib/cfst
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_RAW
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m,uid=10001,gid=10001
+
+volumes:
+  cfst-data:

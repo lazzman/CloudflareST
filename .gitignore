@@ -10,3 +10,7 @@ CLAUDE.md
 CloudflareST*.md
 repo
 problem.md
+!internal/management/web/dist/
+!internal/management/web/dist/**
+/data/
+/cfst-web

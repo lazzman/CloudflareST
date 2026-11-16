@@ -1,0 +1,92 @@
+package management
+
+import (
+	"context"
+	"encoding/json"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/masgzy/CloudflareST/internal/integrations"
+	"github.com/masgzy/CloudflareST/internal/optimizer"
+)
+
+func TestRegressionCompletenessNoResultsMustRecordSkippedDNS(test *testing.T) {
+	engine := &acceptanceEngine{run: func(context.Context, optimizer.Config, func(optimizer.Progress)) (optimizer.Result, error) {
+		return optimizer.Result{Status: "no_results", Candidates: []optimizer.Candidate{}}, nil
+	}}
+	fixture := newAcceptanceFixture(test, acceptanceNow(), engine, nil)
+	acceptanceConnection(test, fixture, "audit-dns", "alidns", "fake-account-001")
+	task := acceptanceTask("无合格结果的自动 DNS")
+	task.ID = "audit-empty-task"
+	task.DNSAuto = true
+	task.Targets = []Target{acceptanceTarget("audit-dns", "fake-account-001", "audit-record")}
+	run := acceptanceEnqueue(test, fixture, task)
+	acceptanceWake(fixture)
+	finished := acceptanceWaitRun(test, fixture, run.ID, "no_results")
+	updates, notifications := fixture.provider.callCounts()
+	if updates != 0 || notifications != 0 {
+		test.Fatalf("不应发起外部调用：DNS=%d，通知=%d", updates, notifications)
+	}
+	test.Logf("已结束=%s，DNSAuto=%t，明确目标=%d，投递记录=%+v，外部调用=0", finished.Status, finished.Snapshot.DNSAuto, len(finished.Snapshot.Targets), finished.Deliveries)
+	for _, delivery := range finished.Deliveries {
+		if delivery.Kind == "dns" && delivery.State == "skipped" && delivery.Reason != "" {
+			return
+		}
+	}
+	test.Fatal("AC-20：无合格 IP 的自动 DNS 缺少明确的未推送及原因记录")
+}
+
+type regressionCompletenessRecordProvider struct {
+	*acceptanceProvider
+	record integrations.Target
+}
+
+func (provider *regressionCompletenessRecordProvider) Records(context.Context, integrations.Connection, string) ([]integrations.Target, error) {
+	return []integrations.Target{provider.record}, nil
+}
+
+func TestRegressionCompletenessDNSDiscoveryMustIncludeReadTime(test *testing.T) {
+	fixture := newAcceptanceFixture(test, acceptanceNow(), nil, nil)
+	acceptanceConnection(test, fixture, "audit-dns", "alidns", "fake-account-001")
+	target := acceptanceTarget("audit-dns", "fake-account-001", "audit-record")
+	fixture.service.mu.Lock()
+	fixture.service.provider = &regressionCompletenessRecordProvider{acceptanceProvider: fixture.provider, record: target.Target}
+	fixture.service.mu.Unlock()
+	request := httptest.NewRequest("GET", "/api/v1/connections/audit-dns/dns-records?domain=example.invalid", nil)
+	response := httptest.NewRecorder()
+	fixture.service.readConnection(response, request, []string{"connections", "audit-dns", "dns-records"})
+	if response.Code != 200 {
+		test.Fatalf("模拟目标发现失败：%d %s", response.Code, response.Body.String())
+	}
+	var targets []map[string]any
+	if err := json.Unmarshal(response.Body.Bytes(), &targets); err != nil || len(targets) != 1 {
+		test.Fatalf("目标返回结构错误：%v", err)
+	}
+	test.Logf("本次刚读取到值=%v，read_at=%v，未发真实网络请求", targets[0]["value"], targets[0]["read_at"])
+	if targets[0]["read_at"] == nil || targets[0]["read_at"] == "" {
+		test.Fatal("R3 目标复核契约：返回当前读取值时未携带真实读取时刻")
+	}
+}
+
+func TestRegressionCompletenessProtectedAutoSkipMustLogResult(test *testing.T) {
+	fixture := newAcceptanceFixture(test, acceptanceNow(), nil, nil)
+	acceptanceConnection(test, fixture, "audit-dns", "alidns", "fake-account-001")
+	target := acceptanceTarget("audit-dns", "fake-account-001", "audit-record")
+	acceptancePut(test, fixture, "dns_protection", target.TargetID, Protection{Active: true, Revision: 1, Reason: "虚构未确认结果", CreatedAt: acceptanceNow(), AttemptID: "audit-original-attempt"})
+	run := Run{ID: "audit-protected-run", TaskID: "audit-task", Status: "completed", Deliveries: []Delivery{{ID: "audit-skipped-attempt", Kind: "dns", ConnectionID: "audit-dns", Target: &target, IP: "192.0.2.42", State: "pending", Automatic: true}}}
+	acceptancePut(test, fixture, "runs", run.ID, run)
+	fixture.service.performDelivery(context.Background(), run.ID, "audit-skipped-attempt")
+	stored := acceptanceGet[Run](test, fixture, "runs", run.ID)
+	updates, notifications := fixture.provider.callCounts()
+	if stored.Deliveries[0].State != "skipped" || updates != 0 || notifications != 0 {
+		test.Fatalf("保护未生效：%+v；调用=%d/%d", stored.Deliveries, updates, notifications)
+	}
+	logs := acceptanceAll[Log](test, fixture, "logs")
+	test.Logf("投递已跳过=%s，操作日志数量=%d，外部调用=0", stored.Deliveries[0].State, len(logs))
+	for _, entry := range logs {
+		if entry.Result == "skipped" && (entry.Object == "audit-skipped-attempt" || entry.Object == target.TargetID || entry.Object == run.ID) {
+			return
+		}
+	}
+	test.Fatal("CR-001 第3.4节：重复命中保护的实际跳过结果未进入统一操作日志")
+}

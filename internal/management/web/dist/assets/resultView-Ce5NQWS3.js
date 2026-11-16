@@ -1,0 +1,1 @@
+const n=[{key:"latency_ms",label:"延迟",unit:" ms"},{key:"speed_mb_s",label:"下载速度",unit:" MB/s"},{key:"loss_percent",label:"失败比例",unit:"%"}];function t(e){return[e?.dns_auto?"DNS":"",e?.notifications?.telegram?.enabled?"Telegram":"",e?.notifications?.wecom?.enabled?"企业微信":""].filter(Boolean).join("、")}export{t as a,n as r};
