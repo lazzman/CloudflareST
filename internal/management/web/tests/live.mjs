@@ -89,6 +89,7 @@ try {
   await page.getByLabel('策略名称（必填）', { exact: true }).fill('R3真实HTTP本地保存冒烟')
   await page.locator('.source-row select').first().selectOption('ip')
   await page.getByLabel('来源 1 值', { exact: true }).fill('127.0.0.1')
+  await page.locator('#editor-step-measure').click()
   await page.getByLabel(/探测方式/).selectOption('tcp')
   await page.getByRole('checkbox', { name: '启用下载测速与过滤', exact: true }).uncheck()
   await page.getByRole('button', { name: '保存策略', exact: true }).click()

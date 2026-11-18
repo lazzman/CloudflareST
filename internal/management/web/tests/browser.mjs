@@ -46,7 +46,6 @@ try {
   async function open(path, heading) {
     await page.goto(origin + '/#' + path)
     await page.getByRole('heading', { name: heading, exact: true }).waitFor()
-    if (heading === '新建策略' || heading === '编辑策略') await page.locator('.editor-advanced').evaluate(element => { element.open = true; element.dispatchEvent(new Event('toggle')) })
     await page.waitForTimeout(120)
   }
   async function api(expression, ...args) {
@@ -98,11 +97,11 @@ try {
     assert(await trigger.evaluate(element => element === document.activeElement), '关闭弹窗应回到触发按钮')
   }
   await open('/tasks/new', '新建策略')
-  await page.locator('#measure').scrollIntoViewIfNeeded()
   await page.getByLabel('策略名称（必填）').fill('浏览器本地保存测试')
-  await page.getByRole('link', { name: '测速细节', exact: true }).click()
+  await page.locator('#editor-step-measure').click()
   assert(page.url().includes('#/tasks/new'), '组内锚点不应被 hash 路由当作新页面')
   await page.getByRole('checkbox', { name: '启用下载测速与过滤', exact: true }).uncheck()
+  await page.locator('#editor-step-advanced').click()
   assert.equal(await page.getByLabel('探测次数', { exact: true }).getAttribute('max'), '100')
   assert.equal(await page.getByLabel('单次探测等待时间（ms）', { exact: true }).getAttribute('min'), '100')
   assert.equal(await page.getByLabel('单次探测等待时间（ms）', { exact: true }).getAttribute('max'), '10000')
@@ -139,6 +138,7 @@ try {
   assert.equal(createdTask.config.probe_count, 100)
   assert.equal(createdTask.config.probe_timeout_ms, 10000)
   await open('/tasks/' + createdTaskId + '/edit', '编辑策略')
+  await page.locator('#editor-step-measure').click()
   await page.getByRole('checkbox', { name: '启用下载测速与过滤', exact: true }).check()
   await page.getByRole('button', { name: '保存策略', exact: true }).click()
   await page.waitForURL('**/#/tasks/' + createdTaskId + '/results')

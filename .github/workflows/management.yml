@@ -47,6 +47,12 @@ jobs:
         run: node scripts/test-management-scroll.mjs
       - name: 策略与结果简化流程回归
         run: node scripts/test-management-simplification.mjs
+      - name: 编辑页分区与保存回归
+        run: node scripts/test-management-editor.mjs
+      - name: 自动刷新布局稳定性回归
+        run: node scripts/test-management-refresh.mjs
+      - name: 策略平铺操作与焦点回归
+        run: node scripts/test-management-strategy-actions.mjs
       - name: 镜像构建
         run: docker build -t cloudflarest-management:r3-acceptance .
       - name: 断网容器启动和重启验收

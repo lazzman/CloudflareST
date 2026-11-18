@@ -98,8 +98,9 @@ try {
   await tracker.getByRole('button',{name:'关闭',exact:true}).click()
   checks.push({case:'RC-04',status:'passed',originalNeverReachedServer:true,automaticResubmits:0,connectionCount:1,linkedOriginal:true,permitReinstalledAfterConsumption:false})
   await page.goto(origin+'/#/tasks/new');await page.getByRole('heading',{name:'新建策略',exact:true}).waitFor()
-  await page.locator('.editor-advanced > summary').click()
   await page.getByLabel('策略名称（必填）',{exact:true}).fill('敏感URL拒绝')
+  await page.locator('#editor-step-advanced').click()
+  await page.locator('#advanced-tab-download').click()
   await page.getByLabel('自定义测速文件 URL（HTTP／HTTPS）',{exact:true}).fill('https://example.invalid/file?token=FAKE_HIDDEN_DOWNLOAD_VALUE')
   const beforeTasks=writes.filter(item=>item.path==='/api/v1/tasks').length
   await page.getByRole('button',{name:'保存策略',exact:true}).click()

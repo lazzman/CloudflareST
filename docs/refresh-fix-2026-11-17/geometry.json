@@ -1,0 +1,116 @@
+{
+  "before": {
+    "case": "自动刷新稳定布局",
+    "width": 1440,
+    "colorScheme": "light",
+    "polls": 2,
+    "samples": 649,
+    "topShift": 3.203125,
+    "tableShift": 3.203125,
+    "widthShift": 0,
+    "scrollShift": 0,
+    "rowPreserved": true,
+    "loadingFrames": 109
+  },
+  "after": {
+    "status": "passed",
+    "cases": [
+      {
+        "width": 1440,
+        "colorScheme": "light",
+        "polls": 2,
+        "samples": 649,
+        "topShift": 0,
+        "tableShift": 0,
+        "widthShift": 0,
+        "scrollShift": 0,
+        "rowPreserved": true,
+        "loadingFrames": 0
+      },
+      {
+        "width": 1440,
+        "colorScheme": "dark",
+        "polls": 2,
+        "samples": 649,
+        "topShift": 0,
+        "tableShift": 0,
+        "widthShift": 0,
+        "scrollShift": 0,
+        "rowPreserved": true,
+        "loadingFrames": 0
+      },
+      {
+        "width": 390,
+        "colorScheme": "light",
+        "polls": 2,
+        "samples": 649,
+        "topShift": 0,
+        "tableShift": 0,
+        "widthShift": 0,
+        "scrollShift": 0,
+        "rowPreserved": true,
+        "loadingFrames": 0
+      },
+      {
+        "width": 390,
+        "colorScheme": "dark",
+        "polls": 2,
+        "samples": 649,
+        "topShift": 0,
+        "tableShift": 0,
+        "widthShift": 0,
+        "scrollShift": 0,
+        "rowPreserved": true,
+        "loadingFrames": 0
+      },
+      {
+        "width": 320,
+        "colorScheme": "light",
+        "polls": 2,
+        "samples": 650,
+        "topShift": 0,
+        "tableShift": 0,
+        "widthShift": 0,
+        "scrollShift": 0,
+        "rowPreserved": true,
+        "loadingFrames": 0
+      },
+      {
+        "width": 320,
+        "colorScheme": "dark",
+        "polls": 2,
+        "samples": 649,
+        "topShift": 0,
+        "tableShift": 0,
+        "widthShift": 0,
+        "scrollShift": 0,
+        "rowPreserved": true,
+        "loadingFrames": 0
+      }
+    ],
+    "manual": {
+      "samples": 59,
+      "topShift": 0,
+      "tableShift": 0,
+      "widthShift": 0,
+      "scrollShift": 0,
+      "rowPreserved": true,
+      "loadingFrames": 55
+    },
+    "scrolled": {
+      "samples": 362,
+      "topShift": 0,
+      "tableShift": 0,
+      "widthShift": 0,
+      "scrollShift": 0,
+      "rowPreserved": true,
+      "loadingFrames": 0
+    },
+    "stillPolls": true,
+    "dataUpdates": true,
+    "failureVisibleAndRecoverable": true,
+    "statePreserved": true,
+    "externalRequests": 0,
+    "businessWrites": 0
+  }
+}

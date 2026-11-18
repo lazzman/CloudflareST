@@ -62,6 +62,7 @@ try {
   await page.goto(origin + '/#/tasks/new')
   await page.getByRole('heading', {name: '新建策略', exact: true}).waitFor()
   await page.getByLabel('策略名称（必填）', {exact: true}).fill('延迟阈值契约复验')
+  await page.locator('#editor-step-measure').click()
   await page.locator('#latency_max_ms').fill('60001')
   assert.equal(await page.locator('#latency_max_ms').getAttribute('max'), null)
   await page.getByRole('button', {name: '保存策略', exact: true}).click()
@@ -86,7 +87,8 @@ try {
   await page.waitForFunction(() => document.getElementById('latency_max_ms')?.value === '60001')
   const beforeInvalid = writes.length
   for (const value of ['0', '-1', '', '1e309']) {
-    await page.locator('#latency_max_ms').fill(value)
+    await page.locator('#editor-step-measure').click()
+  await page.locator('#latency_max_ms').fill(value)
     await page.getByRole('button', {name: '保存策略', exact: true}).click()
     await page.getByRole('alert').getByText('配置未保存，请修正以下内容', {exact: true}).waitFor()
     assert.equal(await page.locator('#latency_max_ms').getAttribute('aria-invalid'), 'true')
@@ -95,6 +97,7 @@ try {
   assert.equal((await readTask()).config.latency_max_ms, 60001)
   console.log(JSON.stringify({case: 'POST-RC-02-invalid', status: 'passed', values: ['0', '-1', '空值', '溢出为无穷大'], businessWrites: 0, persistedThreshold: 60001}))
 
+  await page.locator('#editor-step-measure').click()
   await page.locator('#latency_max_ms').fill('1000000000')
   await page.getByRole('button', {name: '保存策略', exact: true}).click()
   await page.waitForURL(origin + '/#/tasks/' + taskID + '/results')

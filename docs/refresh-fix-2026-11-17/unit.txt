@@ -1,0 +1,12 @@
+
+> cloudflarest-management-web@0.1.0 test
+> vitest run
+
+
+ RUN  v4.1.8 /Users/lazzman/Codes/Code/Demo/cursor/运维/CF优选IP/CloudflareST/internal/management/web
+
+
+ Test Files  12 passed (12)
+      Tests  213 passed (213)
+   Start at  09:42:37
+   Duration  295ms (transform 837ms, setup 0ms, import 1.09s, tests 255ms, environment 2ms)

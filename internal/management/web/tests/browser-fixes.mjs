@@ -42,7 +42,6 @@ try {
   async function open(path, heading) {
     await page.goto(origin + '/#' + path)
     await page.getByRole('heading', { name: heading, exact: true }).waitFor()
-    if (heading === '新建策略' || heading === '编辑策略') await page.locator('.editor-advanced').evaluate(element => { element.open = true; element.dispatchEvent(new Event('toggle')) })
   }
   async function installTransport(receipt) {
     await page.evaluate(async receipt => {

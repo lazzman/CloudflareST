@@ -67,6 +67,7 @@ try {
     await page.getByLabel('策略名称（必填）', {exact: true}).fill(name)
     await page.locator('.source-row select').first().selectOption('ip')
     await page.getByLabel('来源 1 值', {exact: true}).fill('127.0.0.1')
+    await page.locator('#editor-step-measure').click()
     await page.getByLabel(/探测方式/).selectOption('tcp')
     await page.getByRole('checkbox', {name: '启用下载测速与过滤', exact: true}).uncheck()
   }
@@ -137,7 +138,7 @@ try {
   checks.push({case: 'F-04', status: 'passed', timezone: 'UTC', serverInstant: saved.schedule.next_run_at, displayed: expected})
 
   await fillTask('每CIDR独立数量复验')
-  await page.locator('.editor-advanced > summary').click()
+  await page.locator('#editor-step-basic').click()
   await page.locator('.source-row select').first().selectOption('cidr')
   await page.getByLabel('来源 1 值', {exact: true}).fill('192.0.2.0/28')
   await page.locator('.source-row').first().locator('input[type=number]').fill('5')
@@ -151,7 +152,7 @@ try {
   const cidrTask = await page.evaluate(async id => (await (await fetch('/api/v1/tasks/' + id)).json()), cidrId)
   assert.deepEqual(cidrTask.config.sources.map(source => source.count), [5, 8])
   await page.goto(origin + '/#/tasks/' + cidrId + '/edit')
-  await page.locator('.editor-advanced > summary').click()
+  await page.locator('#editor-step-basic').click()
   assert.equal(await page.locator('.source-row').first().locator('input[type=number]').inputValue(), '5')
   assert.equal(await page.locator('.source-row').nth(1).locator('input[type=number]').inputValue(), '8')
   await page.locator('.source-row').first().locator('input[type=number]').fill('0')

@@ -1,0 +1,8 @@
+{"case":"candidate-source-tags","expected":"候选可查看全部来源标记","visible":true,"status":"passed"}
+{"case":"download-completion","expected":"可辨认文件提前完整下载，而不是窗口到期","visible":true,"status":"passed"}
+{"case":"untested-download-display","expected":"未执行下载时明确未测，而非有效0字节／0秒样本","zeroSampleDisplayed":false,"status":"passed"}
+{"case":"dns-delivery-fields","expected":"投递详情显示本次选定写入 IP 与处理时间","selectedIPVisible":true,"startedAtVisible":true,"actual":"成功 DNS 投递 · edge.edge.example.test · A · record-demo-01\n操作 未知 / 投递 delivery-audit-dns / 原尝试 首次投递／未关联\n模拟 DNS 更新已确认；未发真实请求\n\n开始 / 结束\n2026/11/14 08:01:00 → 2026/11/14 08:01:01\n本次选定写入 IP\n192.0.2.18\n写入前读取事实\n未记录／未成功读取 · 未知\n超时后只读核对事实\n未执行或未取得有效核对值 · 未知\n核对与实际请求\n已通过读取核验；不根据状态反推远端是否改变\n明确目标与独立保护状态","status":"passed"}
+{"case":"candidate-pagination-wiring","expected":"详情使用候选分页读取","candidateEndpointRequested":true,"status":"passed"}
+{"case":"queue-visible-progress","expected":"明确队列位置、实际等待时长、当前运行已用时","listStyle":"none","explicitPositionVisible":true,"waitElapsedVisible":true,"runElapsedVisible":true,"status":"passed"}
+{"case":"return-list-state","expected":"详情返回保留手动筛选和第2页","triggerAfterReturn":"manual","paginationAfterReturn":"上一页\n第 2 / 2 页 · 21 条\n下一页","status":"passed"}
+{"case":"isolation","browser":"149.0.7827.55","externalRequests":0,"businessWrites":0,"note":"七类缺口专项UI断言通过；不等同全部PRD验收"}

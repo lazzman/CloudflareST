@@ -52,7 +52,16 @@ try {
   })
   const scroll = top => page.evaluate(top => { const content = document.querySelector('.workspace > #main-content'); const owner = content && innerWidth > 800 && getComputedStyle(content).overflowY === 'auto' ? content : document.scrollingElement; owner.scrollTo({top, behavior: 'instant'}) }, top)
   const waitIdle = () => page.waitForFunction(() => ![...document.querySelectorAll('[role="status"]')].some(element => element.textContent.includes('正在读取服务端状态')))
-  const open = async (path, title) => { await page.goto(origin + '/#' + path); await page.waitForFunction(title => document.title === title + ' · CloudflareST', title); await waitIdle(); if (title === '新建策略' && await page.locator('.editor-advanced').getAttribute('open') === null) await page.locator('.editor-advanced > summary').click() }
+  const open = async (path, title) => {
+    await page.goto(origin + '/#' + path)
+    await page.waitForFunction(title => document.title === title + ' · CloudflareST', title)
+    await waitIdle()
+    if (title === '新建策略') {
+      await page.locator('#editor-step-basic').click()
+      for (let count = await page.locator('.source-row').count(); count < 13; count++) await page.getByRole('button', {name: '添加来源', exact: true}).click()
+      await scroll(0)
+    }
+  }
   const check = (name, passed, detail) => { findings.push({case: name, passed, ...detail}); console.log(JSON.stringify(findings.at(-1))); if (!passed) failures.push(name) }
   const inContent = async selector => {
     const layout = await metrics(), box = await page.locator(selector).boundingBox()
@@ -110,10 +119,10 @@ try {
   await scroll(moved.top)
   await page.mouse.move(1100, 700)
   await page.screenshot({path: join(output, 'desktop-scrolled.jpg'), type: 'jpeg', quality: 85})
-  await page.getByRole('link', {name: 'DNS 与通知', exact: true}).click()
+  await page.locator('#editor-step-advanced').click(); await page.locator('#advanced-tab-delivery').click(); await page.locator('#delivery').scrollIntoViewIfNeeded()
   await delay(100)
   const anchored = await metrics(), target = await page.locator('#delivery').boundingBox()
-  check('section-anchor-visible', !!target && target.y >= anchored.header.bottom + 6 && target.y >= anchored.content.top && target.y < anchored.content.bottom - 44 && page.url().includes('#/tasks/new'), {targetY: target?.y, headerBottom: anchored.header.bottom, contentTop: anchored.content.top, route: new URL(page.url()).hash})
+  check('section-switch-visible', !!target && target.y >= anchored.header.bottom + 6 && target.y >= anchored.content.top && target.y < anchored.content.bottom - 44 && page.url().includes('#/tasks/new'), {targetY: target?.y, headerBottom: anchored.header.bottom, contentTop: anchored.content.top, route: new URL(page.url()).hash})
   await page.getByRole('button', {name: '保存策略', exact: true}).click()
   await page.getByRole('heading', {name: '配置未保存，请修正以下内容', exact: true}).waitFor()
   check('validation-summary-visible', await inContent('[role="alert"][tabindex="-1"]'), {layout: await metrics()})
@@ -186,12 +195,13 @@ try {
   for (const width of [390, 320]) {
     await page.setViewportSize({width, height: 844})
     await open('/tasks/new', '新建策略')
-    await page.getByRole('link', {name: 'DNS 与通知', exact: true}).click()
+    await page.locator('#editor-step-advanced').click(); await page.locator('#advanced-tab-delivery').click(); await page.locator('#delivery').scrollIntoViewIfNeeded()
     await delay(100)
     const mobile = await metrics(), fieldset = await page.locator('#delivery').boundingBox()
-    check('mobile-anchor-' + width, mobile.owner === 'document' && !!fieldset && fieldset.y >= -1 && fieldset.y < 100 && !mobile.horizontal, {targetY: fieldset?.y, layout: mobile})
+    check('mobile-section-switch-' + width, mobile.owner === 'document' && !!fieldset && fieldset.y < 844 && fieldset.y + fieldset.height > 0 && !mobile.horizontal, {targetY: fieldset?.y, layout: mobile})
     await scroll(100000)
     check('mobile-save-reachable-' + width, await inContent('.form-footer') && !(await metrics()).horizontal, {})
+    await page.locator('#editor-step-basic').click()
     await scroll(800)
     const mobileBeforeModal = await metrics()
     await page.getByRole('button', {name: '操作核查', exact: true}).evaluate(element => element.click())

@@ -1,0 +1,15 @@
+b7ef6dd388fe15ee079bf532c11e7187e97f807a9e62a09da23be67548565d5f  docs/editor-2026-11-17/check.txt
+44f204eccdc17dda3ee0bcef00537f93c8430cc45b335817cdef90bd3b01286d  docs/editor-2026-11-17/unit.txt
+cbc7c67bc53fe6206de2b25729d7cf53ef872f72ecd7e440685915f046b2b8ed  docs/editor-2026-11-17/build.txt
+6d53abc5f69364e5c0dfcea4d27a111716461e3b62d854a7fe27e41413c83bb5  docs/editor-2026-11-17/scroll.txt
+2de1922dd5f2407958824adc14a2e0a5f07dd0be1af353b8e7bbe3d08eafc8f0  docs/editor-2026-11-17/simplification.txt
+206df6c1102fbee93c1a2da22b970ef698cb4db38589b0bd2b9868fde8915238  docs/editor-2026-11-17/scaffold.txt
+e679c8c754219e47a9f4ac4b982ad7551f8326ed042d2114ba53ce17b2e7ad0b  docs/editor-2026-11-17/fixes.txt
+470fb03408c4f7402c4874da59ba11286ba2a1ef9df07b07d3d7127e59ab482b  docs/editor-2026-11-17/rc-fixes.txt
+d69bdb09350f553ed9bba550ada97681bfca914d64cc8f2c04e735259466d064  docs/editor-2026-11-17/post-rc-fixes.txt
+6a7ba0da9165fa56860d4b84b178f4b0b22d8b3a97713c00ce93cfd58f745420  docs/editor-2026-11-17/completeness.txt
+540fed18961b06ed1c24646c914c453ee0fa976c55f86171efda50eea4addca7  docs/editor-2026-11-17/browser.txt
+c0abf42ca3c0462f7e97dae923e01c9dbca2facd5bfb4026d7e9f8cb8b800458  docs/editor-2026-11-17/browser-fixes.txt
+81661468c259c6cae5f910eef0ab945d692eb0a461e314a9fded348cd3dda862  docs/editor-2026-11-17/live.txt
+d18c87ce91e6558f75d8d11e870d474bf87b543ba124b768a1be676d5fcc88ce  docs/ip-optimization-editor-preview-2026-11-17.html
+41d016dabe99b76cb14e9f9404584a3d915bd81b86f3510b64ffd4498f91847a  docs/ip-optimization-editor-2026-11-17.md

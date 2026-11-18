@@ -1,0 +1,2 @@
+{"case":"RC-04","status":"passed","originalNeverReachedServer":true,"automaticResubmits":0,"connectionCount":1,"linkedOriginal":true,"permitReinstalledAfterConsumption":false}
+{"case":"RC-01/RC-05","status":"passed","sensitiveURLRejectedBeforePost":true,"realFailedRunReasonVisible":true,"networkProbes":0,"deliveries":0,"narrowLayout":true}
