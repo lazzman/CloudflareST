@@ -25,7 +25,7 @@ const labels: Record<string, string> = {
   notification: '通知', telegram: 'Telegram', wecom: '企业微信', alidns: '阿里云 DNS', committed: '已确认', finished: '已结束', inactive: '未启用',
   cancellation_notifications: '取消通知收尾', finalizing: '收尾处理中', no_results: '无合格结果', filtered: '已淘汰',
   filtering: '过滤判定',
-  dispatching: '投递中', untested: '未测试', cleared: '已解除', recycled: '已移入回收站', removed: '已永久清理',
+  dispatching: '投递中', untested: '未测试', cleared: '已解除', restored: '已恢复', reviewed: '已核查', recycled: '已移入回收站', removed: '已永久清理',
 }
 const filterStages = ['latency', 'loss', 'download'] as const
 type FilterStage = typeof filterStages[number]

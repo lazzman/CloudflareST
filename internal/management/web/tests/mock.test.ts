@@ -44,6 +44,20 @@ describe('显式预览适配器', () => {
     expect(latest).toMatchObject({ kind: 'telegram', prior_attempt_id: 'delivery-demo-failed', state: 'pending' })
     expect(latest.operation_id).toBeTruthy()
   })
+  it('日志动作可按类型筛选，也保留旧关键字匹配', async () => {
+    const byKind = await (await mockFetch('/api/v1/operation-logs?action=dns_protection_clear')).json()
+    expect(byKind.length).toBeGreaterThan(0)
+    expect(byKind.every((item: { action_kind: string }) => item.action_kind === 'dns_protection_clear')).toBe(true)
+    const byKeyword = await (await mockFetch('/api/v1/operation-logs?action=run_finished')).json()
+    expect(byKeyword.some((item: { action_kind: string }) => item.action_kind === 'run_finished')).toBe(true)
+  })
+  it('日志操作人按主体精确筛选', async () => {
+    const list = await (await mockFetch('/api/v1/operation-logs?actor=' + encodeURIComponent('共享管理身份'))).json()
+    expect(list.length).toBeGreaterThan(0)
+    expect(list.every((item: { actor: string }) => item.actor === '共享管理身份')).toBe(true)
+    const system = await (await mockFetch('/api/v1/operation-logs?actor=' + encodeURIComponent('系统'))).json()
+    expect(system.every((item: { actor: string }) => item.actor === '系统')).toBe(true)
+  })
   it('日志结果与动作、对象共同过滤，不退化为 OR', async () => {
     const list = await (await mockFetch('/api/v1/operation-logs')).json()
     const entry = list.find((item: { action: string }) => item.action === 'mock_action')

@@ -257,6 +257,11 @@ func (service *Service) readAPI(response http.ResponseWriter, request *http.Requ
 	case len(parts) == 1 && parts[0] == "operation-logs":
 		var entries []Log
 		entries, err = all[Log](service.db, "logs")
+		query := request.URL.Query()
+		action := strings.TrimSpace(query.Get("action"))
+		actor := strings.TrimSpace(query.Get("actor"))
+		object := query.Get("object")
+		result := query.Get("result")
 		filtered := []Log{}
 		for _, entry := range entries {
 			matches, filterErr := timeMatches(entry.At, request)
@@ -264,8 +269,8 @@ func (service *Service) readAPI(response http.ResponseWriter, request *http.Requ
 				err = filterErr
 				break
 			}
-			query := request.URL.Query()
-			if matches && (query.Get("action") == "" || strings.Contains(entry.Action, query.Get("action"))) && (query.Get("object") == "" || strings.Contains(entry.Object, query.Get("object"))) && (query.Get("result") == "" || entry.Result == query.Get("result")) {
+			entry.ActionKind = actionKind(entry.Action)
+			if matches && logActionMatches(entry.Action, action) && (actor == "" || entry.Actor == actor) && (object == "" || strings.Contains(entry.Object, object)) && (result == "" || entry.Result == result) {
 				filtered = append(filtered, entry)
 			}
 		}

@@ -23,3 +23,13 @@ export function systemTimeToISO(value: string, timezone: string | undefined) {
   if (matches.length > 1) throw new Error('该时刻在系统时区重复（夏令时回拨），请调整筛选边界以避免歧义')
   return new Date(matches[0]!).toISOString()
 }
+
+export function instantToSystemInput(instant: number, timezone: string | undefined) {
+  if (!timezone) throw new Error('系统时区尚未读取，不能生成时间筛选；请稍后重试')
+  let formatter: Intl.DateTimeFormat
+  try {
+    formatter = new Intl.DateTimeFormat('en-GB', { timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+  } catch { throw new Error('系统时区无效，不能生成时间筛选') }
+  const fields = Object.fromEntries(formatter.formatToParts(instant).map(part => [part.type, part.value]))
+  return fields.year!.padStart(4, '0') + '-' + fields.month + '-' + fields.day + 'T' + fields.hour + ':' + fields.minute
+}

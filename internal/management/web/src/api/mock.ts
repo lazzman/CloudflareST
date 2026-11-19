@@ -52,8 +52,8 @@ const waitingRun: Run = { id: 'run-demo-002', task_id: queuedTask.id, task_name:
 const tasks: Task[] = [task, queuedTask]
 const runs: Run[] = [run, waitingRun]
 const logs: OperationLog[] = [
-  { id: 'log-preview-1', created_at: ago(0.5), actor: '共享管理身份', action: 'target_protection', object_id: lockedTarget.target_id, state: 'unconfirmed', reason: '预览示例；没有联系 DNS 服务。' },
-  { id: 'log-preview-2', created_at: ago(2.9), actor: '共享管理身份', action: 'run_completed', object_id: run.id, state: 'completed', reason: '仅用于本地界面预览。' },
+  { id: 'log-preview-1', created_at: ago(0.5), actor: '共享管理身份', action: 'POST /api/v1/dns-targets/' + lockedTarget.target_id + '/auto-write-protection/clear ', action_kind: 'dns_protection_clear', object_id: lockedTarget.target_id, state: 'unconfirmed', reason: '预览示例；没有联系 DNS 服务。' },
+  { id: 'log-preview-2', created_at: ago(2.9), actor: '共享管理身份', action: 'run_finished', action_kind: 'run_finished', object_id: run.id, state: 'completed', reason: '仅用于本地界面预览。' },
 ]
 const settings: Settings = { timezone: 'Asia/Shanghai', history_days: 30, icmp: { available: true, message: '预览数据；未探测本机 ICMP 能力。' }, password_source: '本地预览认证（内存）' }
 const receipts = new Map<string, { operation_id: string; object_id?: string; state: string; result?: unknown }>()
@@ -81,12 +81,12 @@ function paginated<Value>(items: Value[], url: URL) {
   const page = Math.max(1, Math.min(Math.ceil(items.length / size) || 1, Number(url.searchParams.get('page')) || 1))
   return {items: items.slice((page - 1) * size, page * size), total: items.length, page, page_size: size}
 }
-function makeReceipt(id: string, objectId?: string) {
+function makeReceipt(id: string, objectId?: string, actionKind = 'other') {
   const existing = receipts.get(id)
   if (existing) return existing
   const receipt = { operation_id: id, object_id: objectId, state: 'accepted' }
   receipts.set(id, receipt)
-  logs.unshift({ id: 'log-' + id, operation_id: id, created_at: new Date().toISOString(), actor: '共享管理身份（预览）', action: 'mock_action', object_id: objectId, state: 'accepted', reason: '仅修改本地内存；没有调用外部服务。' })
+  logs.unshift({ id: 'log-' + id, operation_id: id, created_at: new Date().toISOString(), actor: '共享管理身份', action: 'mock_action', action_kind: actionKind, object_id: objectId, state: 'accepted', reason: '仅修改本地内存；没有调用外部服务。' })
   return receipt
 }
 
@@ -103,7 +103,7 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
   const path = url.pathname.slice('/api/v1'.length)
   if (path === '/defaults' && method === 'GET') return response({ config: { ...structuredClone(DEFAULT_CONFIG), [DOWNLOAD4_FIELD]: 20, [DOWNLOAD6_FIELD]: 20 }, timezone: settings.timezone, history_days: settings.history_days })
   if (path === '/settings' && method === 'GET') return response(structuredClone(settings))
-  if (path === '/settings' && method === 'PATCH') { Object.assign(settings, { timezone: body.timezone, history_days: body.history_days }); const receipt = makeReceipt(String(body.operation_id), 'system'); return response(receipt, 202) }
+  if (path === '/settings' && method === 'PATCH') { Object.assign(settings, { timezone: body.timezone, history_days: body.history_days }); const receipt = makeReceipt(String(body.operation_id), 'system', 'settings_update'); return response(receipt, 202) }
   if (path === '/tasks' && method === 'GET') return response(structuredClone(tasks.map(task => {
     if (url.searchParams.get('view') !== 'strategies') return task
     const latest = runs.filter(run => run.task_id === task.id && !run.deleted_at).sort((first, second) => (second.queued_at || '').localeCompare(first.queued_at || '') || second.id.localeCompare(first.id))[0]
@@ -114,7 +114,7 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
     const fields = validateTask(newTask)
     if (Object.keys(fields).length) return response({ code: 'CONFIG_INVALID', message: '配置不合法。', fields }, 422)
     newTask.id = 'task-local-' + crypto.randomUUID(); newTask.revision = 1
-    tasks.unshift(newTask); return response(makeReceipt(String(body.operation_id), newTask.id), 202)
+    tasks.unshift(newTask); return response(makeReceipt(String(body.operation_id), newTask.id, 'task_create'), 202)
   }
   if (path === '/queue' && method === 'GET') { const activeRun = runs.find(item => item.status === 'running'); return response({ current: activeRun ? compactRun(activeRun) : null, waiting: runs.filter(item => item.status === 'queued').map(compactRun), server_time: new Date().toISOString() } satisfies Queue) }
   if (path === '/connections' && method === 'GET') return response(structuredClone(connections))
@@ -124,7 +124,7 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
     const connection: Connection = { id: 'connection-local-' + Date.now(), kind: draft.kind as ConnectionKind, name: String(draft.name || ''), account_id: String(draft.account_id || ''), credentials_set: true, revision: 1, referenced_by: [] }
     connections.unshift(connection)
     connectionSecrets.set(connection.id, structuredClone((draft.secrets as Record<string, string>) || {}))
-    return response(makeReceipt(String(body.operation_id), connection.id), 202)
+    return response(makeReceipt(String(body.operation_id), connection.id, 'connection_create'), 202)
   }
   if (path === '/operation-logs' && method === 'GET') return response(logs.filter(item => logMatches(item, url.searchParams)))
   if (path.startsWith('/operations/') && method === 'GET') {
@@ -139,7 +139,7 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
     const fields = validateTask(body.task as Task)
     if (Object.keys(fields).length) return response({ code: 'CONFIG_INVALID', message: '配置不合法。', fields }, 422)
     const index = tasks.indexOf(item); tasks[index] = { ...item, ...structuredClone(body.task) as object, revision: Number(item.revision || 0) + 1 } as Task
-    return response(makeReceipt(String(body.operation_id), item.id), 202)
+    return response(makeReceipt(String(body.operation_id), item.id, 'task_update'), 202)
   }
   if (path.match(/^\/tasks\/[^/]+\/(archive|restore|schedule-state)$/) && method === 'POST') {
     const [, , id, action] = path.split('/')
@@ -149,7 +149,7 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
     if (action === 'restore') { item.archived = false; item.schedule = { ...item.schedule, enabled: false } }
     if (action === 'schedule-state') item.schedule = { ...item.schedule, enabled: body.enabled === true }
     item.revision = Number(item.revision || 0) + 1
-    return response(makeReceipt(String(body.operation_id), item.id), 202)
+    return response(makeReceipt(String(body.operation_id), item.id, action === 'archive' ? 'task_archive' : action === 'restore' ? 'task_restore' : 'schedule_update'), 202)
   }
   if (path.match(/^\/tasks\/[^/]+\/runs$/) && method === 'GET') {
     const id = path.split('/')[2]
@@ -161,7 +161,7 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
     const owner = getTask(path.split('/')[2]!)
     if (!owner) return fail(404, 'NOT_FOUND', '任务不存在。')
     const created: Run = { id: 'run-local-' + Date.now(), task_id: owner.id, task_name: owner.name, trigger: 'manual', status: 'queued', stage: 'queued', slot_busy: false, queued_at: new Date().toISOString(), snapshot: structuredClone(owner), progress: { stage: 'queued', done: 0, total: null, message: '仅本地预览；未执行真实测速。' }, result: { status: 'queued', candidates: [], sources: [], budgets: [] }, deliveries: [] }
-    runs.unshift(created); return response(makeReceipt(String(body.operation_id), created.id), 202)
+    runs.unshift(created); return response(makeReceipt(String(body.operation_id), created.id, 'run_start'), 202)
   }
   if (path.match(/^\/tasks\/[^/]+\/runs\/[^/]+\/progress$/) && method === 'GET') { const item = getRun(path.split('/')[4]!); if (!item) return fail(404, 'NOT_FOUND', '执行不存在'); const summary = compactRun(item); return response({id: summary.id, status: summary.status, stage: summary.stage, slot_busy: summary.slot_busy, progress: summary.progress, stage_progress: summary.stage_progress, result_status: summary.result?.status, candidate_summary: summary.candidate_summary, deliveries: summary.deliveries, server_time: summary.server_time}) }
   if (path.match(/^\/tasks\/[^/]+\/runs\/[^/]+\/candidates$/) && method === 'GET') {
@@ -181,9 +181,9 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
     if (!item || ['running', 'queued'].includes(item.status || '')) return fail(409, 'RUN_NOT_ACTIVE', '示例不允许删除未知或活动执行。')
     deleted.set(id, { ...item, deleted_at: new Date().toISOString(), restore_until: new Date(now + 7 * 86400000).toISOString() })
     runs.splice(runs.indexOf(item), 1)
-    return response(makeReceipt(String(new Headers(init.headers).get('Idempotency-Key')), id), 202)
+    return response(makeReceipt(String(new Headers(init.headers).get('Idempotency-Key')), id, 'history_delete'), 202)
   }
-  if (path.match(/^\/runs\/[^/]+\/restore$/) && method === 'POST') { const id = path.split('/')[2]!; const item = deleted.get(id); if (!item) return fail(404, 'NOT_FOUND', '回收记录不存在。'); deleted.delete(id); runs.unshift({ ...item, deleted_at: undefined, restore_until: undefined }); return response(makeReceipt(String(body.operation_id), id), 202) }
+  if (path.match(/^\/runs\/[^/]+\/restore$/) && method === 'POST') { const id = path.split('/')[2]!; const item = deleted.get(id); if (!item) return fail(404, 'NOT_FOUND', '回收记录不存在。'); deleted.delete(id); runs.unshift({ ...item, deleted_at: undefined, restore_until: undefined }); return response(makeReceipt(String(body.operation_id), id, 'history_restore'), 202) }
   if (path.match(/^\/runs\/[^/]+\/(cancel|dns-deliveries|notifications)$/) && method === 'POST') {
     const id = path.split('/')[2]!
     const action = path.split('/')[3]
@@ -209,7 +209,7 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
       }
       channels.forEach(entry => item.deliveries?.push({ id: 'delivery-local-' + crypto.randomUUID(), operation_id: String(body.operation_id), kind: entry.kind, connection_id: entry.connection_id, state: 'pending', prior_attempt_id: entry.prior_attempt_id, reason: '本地模拟受理，状态保持待确认；没有发送消息。' }))
     }
-    return response(makeReceipt(String(body.operation_id), id), 202)
+    return response(makeReceipt(String(body.operation_id), id, action === 'cancel' ? 'run_cancel' : action === 'dns-deliveries' ? 'dns_delivery' : 'notification_delivery'), 202)
   }
   if (path === '/connections/' + path.split('/')[2] + '/domains' && method === 'GET') return response(['edge.example.test', 'img.example.test'])
   if (path.match(/^\/connections\/[^/]+\/dns-records$/) && method === 'GET') return response(url.searchParams.get('domain') ? [structuredClone(lockedTarget), { ...structuredClone(lockedTarget), record_id: 'record-demo-02', target_id: 'target-demo-02', rr: 'img', type: 'A', value: '192.0.2.18', protection: { active: false, revision: 1 } }].filter(item => item.domain === url.searchParams.get('domain')) : [])
@@ -222,9 +222,9 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
     if (draft.secrets !== undefined && (!draft.secrets || !Object.values(draft.secrets as object).length || Object.values(draft.secrets as object).some(value => typeof value !== 'string' || !value.trim()))) return fail(422, 'INVALID_SECRETS', '替换凭据时须提供完整新值；仅改名时应省略 secrets。')
     Object.assign(item, { name: draft.name || item.name, account_id: draft.account_id || item.account_id, revision: Number(item.revision || 0) + 1 })
     if (draft.secrets !== undefined) connectionSecrets.set(id, structuredClone(draft.secrets as Record<string, string>))
-    return response(makeReceipt(String(body.operation_id), id), 202)
+    return response(makeReceipt(String(body.operation_id), id, 'connection_update'), 202)
   }
-  if (path.startsWith('/connections/') && path.split('/').length === 3 && method === 'DELETE') { const id = path.split('/')[2]!; const index = connections.findIndex(item => item.id === id); if (index < 0) return fail(404, 'NOT_FOUND', '连接不存在。'); connections.splice(index, 1); connectionSecrets.delete(id); return response(makeReceipt(String(new Headers(init.headers).get('Idempotency-Key')), id), 202) }
-  if (path.match(/^\/dns-targets\/[^/]+\/auto-write-protection\/clear$/) && method === 'POST') { if (Number(body.revision) !== lockedTarget.protection?.revision) return fail(409, 'TARGET_PROTECTION_CHANGED', '保护版本已变化，请重新读取。'); if (lockedTarget.protection) lockedTarget.protection.active = false; return response(makeReceipt(String(body.operation_id), String(path.split('/')[2])), 202) }
+  if (path.startsWith('/connections/') && path.split('/').length === 3 && method === 'DELETE') { const id = path.split('/')[2]!; const index = connections.findIndex(item => item.id === id); if (index < 0) return fail(404, 'NOT_FOUND', '连接不存在。'); connections.splice(index, 1); connectionSecrets.delete(id); return response(makeReceipt(String(new Headers(init.headers).get('Idempotency-Key')), id, 'connection_delete'), 202) }
+  if (path.match(/^\/dns-targets\/[^/]+\/auto-write-protection\/clear$/) && method === 'POST') { if (Number(body.revision) !== lockedTarget.protection?.revision) return fail(409, 'TARGET_PROTECTION_CHANGED', '保护版本已变化，请重新读取。'); if (lockedTarget.protection) lockedTarget.protection.active = false; return response(makeReceipt(String(body.operation_id), String(path.split('/')[2]), 'dns_protection_clear'), 202) }
   return fail(404, 'NOT_FOUND', method + ' /api/v1' + path + ' 在本地预览适配器中没有对应样例路由。')
 }

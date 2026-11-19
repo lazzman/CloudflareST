@@ -156,17 +156,17 @@ describe('任务配置与测量语义', () => {
 })
 
 describe('日志条件与可读状态', () => {
-  const log = { action: 'delivery_result', object: 'delivery-original', result: 'unconfirmed', at: '2026-11-14T09:30:00Z' }
+  const log = { actor: '系统', action: 'delivery_result', object: 'delivery-original', result: 'unconfirmed', at: '2026-11-14T09:30:00Z' }
   it('结果精确匹配，动作、对象及时间边界采用 AND', () => {
-    expect(logMatches(log, new URLSearchParams({ action: 'delivery', object: 'original', result: 'unconfirmed', start: log.at, end: log.at }))).toBe(true)
-    const mismatches: Record<string, string>[] = [{ action: 'run_finished' }, { object: 'other' }, { result: 'failed' }, { start: '2026-11-14T09:30:01Z' }, { end: '2026-11-14T09:29:59Z' }]
+    expect(logMatches(log, new URLSearchParams({ action: 'delivery', actor: '系统', object: 'original', result: 'unconfirmed', start: log.at, end: log.at }))).toBe(true)
+    const mismatches: Record<string, string>[] = [{ action: 'run_finished' }, { actor: '共享管理身份' }, { object: 'other' }, { result: 'failed' }, { start: '2026-11-14T09:30:01Z' }, { end: '2026-11-14T09:29:59Z' }]
     for (const mismatch of mismatches) {
-      expect(logMatches(log, new URLSearchParams({ action: 'delivery', object: 'original', result: 'unconfirmed', ...mismatch }))).toBe(false)
+      expect(logMatches(log, new URLSearchParams({ action: 'delivery', actor: '系统', object: 'original', result: 'unconfirmed', ...mismatch }))).toBe(false)
     }
   })
   it('前端对象字段映射为 object，保留 result 并转换为 RFC3339 时间', () => {
-    const query = logQuery({ action: ' delivery ', object_id: ' original ', result: 'unconfirmed', start: '2026-11-14T09:00', end: '' }, 'UTC')
-    expect(query).toMatchObject({ action: 'delivery', object: 'original', result: 'unconfirmed', end: '' })
+    const query = logQuery({ action: ' delivery ', actor: '系统', object_id: ' original ', result: 'unconfirmed', start: '2026-11-14T09:00', end: '' }, 'UTC')
+    expect(query).toMatchObject({ action: 'delivery', actor: '系统', object: 'original', result: 'unconfirmed', end: '' })
     expect(query.start).toMatch(/T.*Z$/)
     expect(query).not.toHaveProperty('object_id')
   })

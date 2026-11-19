@@ -175,5 +175,5 @@ export interface Connection {
 export interface Defaults { config: OptimizerConfig; timezone?: string; history_days?: number }
 export interface Settings { timezone?: string; history_days?: number; icmp?: { available?: boolean; message?: string }; password_source?: string }
 export interface Receipt { operation_id: string; object_id?: string; state?: string; result?: unknown; action?: string }
-export interface OperationLog { id?: string; operation_id?: string; created_at?: string; at?: string; action?: string; actor?: string; object_id?: string; object?: string; state?: string; result?: string; reason?: string; message?: string }
+export interface OperationLog { id?: string; operation_id?: string; created_at?: string; at?: string; action?: string; action_kind?: string; actor?: string; object_id?: string; object?: string; state?: string; result?: string; reason?: string; message?: string }
 export interface ApiErrorBody { code?: string; message?: string; fields?: Record<string, string | string[]>; operation_id?: string; action?: string }

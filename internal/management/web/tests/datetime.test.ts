@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed } from 'vue'
 import { setTransport } from '../src/api/client'
 import { date as formatDate } from '../src/lib/domain'
-import { systemTimeToISO } from '../src/lib/datetime'
+import { instantToSystemInput, systemTimeToISO } from '../src/lib/datetime'
 import { clearSettings, date, loadSettings, systemTimezone } from '../src/lib/settings'
 import { timeQuery } from '../src/lib/serialize'
 import { logQuery } from '../src/lib/logs'
@@ -86,11 +86,21 @@ describe('系统时区显示与时间筛选', () => {
     expect(() => systemTimeToISO('2027-01-01T00:00', 'bad-zone')).toThrow('系统时区无效')
     expect(timeQuery({ start: '', end: '', status: 'completed' }, undefined)).toEqual({ start: '', end: '', status: 'completed' })
   })
+  it('结束时间按所选分钟包含整分钟，显式秒值保持原样', () => {
+    expect(timeQuery({ start: '', end: '2027-01-01T08:00' }, 'Asia/Shanghai').end).toBe('2027-01-01T00:00:59.999Z')
+    expect(timeQuery({ start: '', end: '2027-01-01T08:00:12.345' }, 'Asia/Shanghai').end).toBe('2027-01-01T00:00:12.345Z')
+  })
+  it('把瞬间格式化为系统时区的本地输入值', () => {
+    expect(instantToSystemInput(Date.parse('2027-01-01T00:00:00Z'), 'Asia/Shanghai')).toBe('2027-01-01T08:00')
+    expect(instantToSystemInput(Date.parse('2027-01-01T00:00:00Z'), 'UTC')).toBe('2027-01-01T00:00')
+    expect(() => instantToSystemInput(Date.now(), undefined)).toThrow('尚未读取')
+    expect(() => instantToSystemInput(Date.now(), 'bad-zone')).toThrow('系统时区无效')
+  })
   it('运行与日志筛选显式采用同一系统时区，不修改表单字段', () => {
-    const filters = { action: ' delivery ', object_id: ' original ', result: 'unconfirmed', start: '2027-01-01T08:00', end: '2027-01-01T09:00' }
+    const filters = { action: ' delivery ', actor: '系统', object_id: ' original ', result: 'unconfirmed', start: '2027-01-01T08:00', end: '2027-01-01T09:00' }
     const runs = timeQuery(filters, 'Asia/Shanghai')
     const logs = logQuery(filters, 'Asia/Shanghai')
-    expect(logs).toMatchObject({ start: '2027-01-01T00:00:00.000Z', end: '2027-01-01T01:00:00.000Z', action: 'delivery', object: 'original' })
+    expect(logs).toMatchObject({ start: '2027-01-01T00:00:00.000Z', end: '2027-01-01T01:00:59.999Z', action: 'delivery', actor: '系统', object: 'original' })
     expect(runs.start).toBe(logs.start)
     expect(runs.end).toBe(logs.end)
     expect(filters.start).toBe('2027-01-01T08:00')

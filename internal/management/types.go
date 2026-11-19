@@ -155,13 +155,14 @@ type Operation struct {
 }
 
 type Log struct {
-	ID     string    `json:"id"`
-	At     time.Time `json:"at"`
-	Actor  string    `json:"actor"`
-	Action string    `json:"action"`
-	Object string    `json:"object"`
-	Result string    `json:"result"`
-	Reason string    `json:"reason,omitempty"`
+	ID         string    `json:"id"`
+	At         time.Time `json:"at"`
+	Actor      string    `json:"actor"`
+	Action     string    `json:"action"`
+	ActionKind string    `json:"action_kind,omitempty"`
+	Object     string    `json:"object"`
+	Result     string    `json:"result"`
+	Reason     string    `json:"reason,omitempty"`
 }
 
 type Engine interface {
