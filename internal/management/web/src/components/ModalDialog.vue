@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { lockBackgroundScroll } from '../lib/scroll'
-defineProps<{ title: string }>()
+defineProps<{ title: string; size?: 'narrow' }>()
 const emit = defineEmits<{ close: [] }>()
 const dialog = ref<HTMLDialogElement>()
 const previous = document.activeElement as HTMLElement | null
@@ -35,7 +35,7 @@ onUnmounted(() => {
 })
 </script>
 <template>
-  <dialog ref="dialog" aria-labelledby="dialog-title" @keydown="trapFocus" @cancel.prevent="emit('close')">
+  <dialog ref="dialog" :class="size ? 'dialog-' + size : undefined" aria-labelledby="dialog-title" @keydown="trapFocus" @cancel.prevent="emit('close')">
     <header class="page-heading"><h2 id="dialog-title" tabindex="-1">{{ title }}</h2><button type="button" class="safe-focus" @click="emit('close')">关闭</button></header>
     <slot />
   </dialog>

@@ -32,7 +32,7 @@ try{
  const task=()=>page.evaluate(async()=>{const {request}=await import('/src/api/client.ts');return request('/tasks/task-demo')})
  const original=await task()
  assert.equal(await page.locator('.overview-grid').count(),0)
- assert.equal(await page.locator('.advanced-navigation').getAttribute('open'),null)
+ assert.equal(await page.getByRole('navigation',{name:'主导航',exact:true}).getByRole('link').count(),5,'导航应直接展示全部入口')
  assert.equal(await page.getByRole('heading',{name:'我的策略',exact:true}).count(),1)
  await shot('strategies-desktop')
  const row=page.locator('tr').filter({has:page.getByRole('link',{name:'边缘节点 · 每日复核',exact:true})})

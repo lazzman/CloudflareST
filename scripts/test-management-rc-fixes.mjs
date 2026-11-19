@@ -50,7 +50,7 @@ try {
   await page.goto(origin+'/#/connections');await page.getByRole('heading',{name:'服务连接',exact:true}).waitFor()
   async function createConnection(name) {
     await page.getByRole('button',{name:'新增连接',exact:true}).click()
-    const dialog=page.getByRole('dialog',{name:'新增共享连接'})
+    const dialog=page.getByRole('dialog',{name:'新增连接'})
     await dialog.locator('select').first().selectOption('telegram')
     await dialog.getByLabel('连接名称',{exact:true}).fill(name)
     await dialog.getByLabel('Bot Token',{exact:true}).fill('100001:FAKE_UNUSED_TOKEN')
@@ -82,7 +82,7 @@ try {
   await tracker.getByRole('button',{name:'关闭',exact:true}).click()
   await page.reload();await page.getByRole('heading',{name:'服务连接',exact:true}).waitFor()
   await createConnection('人工核查后的新连接')
-  await page.getByRole('dialog',{name:'新增共享连接'}).waitFor({state:'detached'})
+  await page.getByRole('dialog',{name:'新增连接'}).waitFor({state:'detached'})
   const created=writes.filter(item=>item.path==='/api/v1/connections').at(-1)
   assert.equal(created.body.prior_operation_id,original);assert.equal(created.body.recovery_id,recovery)
   const read=path=>page.evaluate(async path=>{const response=await fetch(path);return{status:response.status,body:await response.json()}},path)

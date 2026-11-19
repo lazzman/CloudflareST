@@ -32,7 +32,7 @@ try {
     assert.deepEqual(capabilities, { secure: origin === localOrigin, digest: origin === localOrigin, uuid: origin === localOrigin, random: true })
     await page.getByText('当前使用 HTTP，密码与凭据传输未加密；仅建议在可信网络使用。', { exact: true }).waitFor()
     await page.getByRole('button', { name: '新增连接', exact: true }).click()
-    const dialog = page.getByRole('dialog', { name: '新增共享连接' })
+    const dialog = page.getByRole('dialog', { name: '新增连接' })
     await dialog.getByLabel('连接名称').fill('HTTP 兼容测试')
     await dialog.getByLabel('AccessKey ID', { exact: true }).fill('FAKE_HTTP_ID')
     await dialog.getByLabel('AccessKey Secret', { exact: true }).fill('FAKE_HTTP_SECRET')
@@ -40,6 +40,7 @@ try {
     await dialog.waitFor({ state: 'detached' })
     const row = page.getByRole('row').filter({ hasText: 'HTTP 兼容测试' })
     await row.waitFor()
+    await row.getByText('查看凭据', { exact: true }).click()
     assert((await row.innerText()).includes('FAKE_HTTP_SECRET'))
     const verification = await page.evaluate(async () => {
       const client = await import('/src/api/client.ts')

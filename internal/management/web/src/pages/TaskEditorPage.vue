@@ -160,7 +160,7 @@ async function submit() {
 }
 </script>
 <template>
-  <RouterLink to="/tasks">← 优选策略</RouterLink>
+  <RouterLink to="/tasks" class="back-link">← 优选策略</RouterLink>
   <header class="page-heading editor-heading"><div><h1 tabindex="-1">{{ id ? '编辑策略' : '新建策略' }}</h1><p class="muted">保存只影响后续新执行，不改当次快照、不运行、不发 DNS／通知。保存后可在策略列表直接开启定时。</p></div></header>
   <ResourceState :loading="resource.loading.value" :error="resource.error.value" @retry="resource.reload" />
   <p v-if="resource.data.value?.task?.configuration_issue" class="notice danger" role="alert">{{ resource.data.value.task.configuration_issue }}；敏感地址已移除，定时暂停。请重新填写安全地址并保存；不会自动重跑或恢复计划。</p>

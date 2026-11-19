@@ -17,8 +17,8 @@ const task = computed(() => resource.data.value?.task)
 const currentRun = computed(() => [resource.data.value?.queue.current, ...(resource.data.value?.queue.waiting || [])].find(run => run?.task_id === id))
 </script>
 <template>
-  <RouterLink to="/tasks">← 优选任务</RouterLink>
-  <header class="page-heading"><div><p class="eyebrow">任务概览 · {{ task?.archived ? '已归档' : '活跃' }}</p><h1 tabindex="-1">{{ task?.name || '任务概览' }}</h1><code>{{ id }}</code> · 配置版本 {{ task?.revision ?? '未知' }}</div></header>
+  <RouterLink to="/tasks" class="back-link">← 优选任务</RouterLink>
+  <header class="page-heading"><div><h1 tabindex="-1">{{ task?.name || '任务概览' }}</h1><p class="page-meta"><code>{{ id }}</code> · 配置版本 {{ task?.revision ?? '未知' }} · {{ task?.archived ? '已归档' : '活跃' }}</p></div></header>
   <ResourceState :loading="resource.loading.value" :error="resource.error.value" :updated-at="resource.updatedAt.value" @retry="resource.reload" />
   <p v-if="task?.configuration_issue" class="notice danger" role="alert">{{ task.configuration_issue }}；敏感地址已移除，定时暂停。请重新填写安全地址并保存；不会自动重跑或恢复计划。</p>
   <template v-if="task">

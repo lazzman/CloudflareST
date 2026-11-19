@@ -25,7 +25,7 @@ async function archive() {
 </script>
 <template>
   <div class="strategy-actions actions">
-    <RouterLink :to="path() + '/results'" class="button primary">查看结果</RouterLink>
+    <RouterLink :to="path() + '/results'" class="button">查看结果</RouterLink>
     <button v-if="!task.archived" :disabled="!!currentRun || mutation.busy.value" @click="runOnce">{{ currentRun ? currentRun.status === 'queued' ? '排队中' : '运行中' : '运行一次' }}</button>
     <RouterLink v-if="!task.archived" :to="path() + '/edit'" class="button">编辑</RouterLink>
   </div>

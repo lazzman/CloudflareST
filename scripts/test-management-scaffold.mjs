@@ -55,7 +55,6 @@ try {
   await page.getByRole('link', {name: '边缘节点 · 每日复核', exact: true}).waitFor()
   await screenshot('tasks-mobile')
   await page.getByRole('button', {name: '打开导航', exact: true}).click()
-  await page.locator('.advanced-navigation > summary').click()
   await page.getByRole('navigation', {name: '主导航', exact: true}).getByRole('link', {name: '服务连接', exact: true}).focus()
   await page.keyboard.press('Escape')
   assert.equal(await page.getByRole('button', {name: '打开导航', exact: true}).getAttribute('aria-expanded'), 'false')

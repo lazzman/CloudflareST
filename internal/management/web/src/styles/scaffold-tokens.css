@@ -1,216 +1,85 @@
-
-
+/* Interface tokens: flat, dense, and built for an operations console. */
 :root {
-  font-family: "SF Pro Display", "SF Pro Text", "PingFang SC", -apple-system, BlinkMacSystemFont, "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   font-synthesis: none;
   color-scheme: light;
 
+  --ink: #191d1b;
+  --ink-muted: #5c6561;
+  --ink-soft: #7d8682;
+  --ink-faint: #98a09d;
+  --placeholder: #6b7470;
 
-  --ink: #101418;
-  --ink-muted: #596368;
-  --ink-soft: #7e888c;
-  --ink-faint: #99a2a5;
-  --leaf-text: #58a021;
+  --canvas: #f3f4f1;
+  --rail: #eaece8;
+  --surface: #ffffff;
+  --surface-raised: #f7f8f5;
+  --surface-selected: #e5e8e3;
 
+  --line: #d9ddd7;
+  --line-strong: #c7ccc5;
+  --control-line: #879187;
 
-  --blue: #236de9;
-  --blue-hover: #1d61d5;
-  --blue-soft: rgba(35, 109, 233, .1);
-  --lime: #82dd2d;
-  --lime-soft: rgba(130, 221, 45, .14);
-  --red: #ff5a50;
-  --red-text: #e0443b;
-  --red-soft: rgba(255, 90, 80, .11);
-  --focus: rgba(35, 109, 233, .8);
+  --accent: #1f5b9e;
+  --accent-solid: #235f9f;
+  --accent-solid-hover: #1c5088;
+  --accent-soft: rgba(31, 91, 158, .08);
+  --focus: #1f5b9e;
 
+  --success: #2c6238;
+  --warning: #76520f;
+  --warning-soft: #f8f2e6;
+  --danger: #9c342f;
+  --danger-soft: #f8eeed;
 
-  --r-xs: 8px;
-  --r-sm: 12px;
-  --r-md: 16px;
-  --r-lg: 20px;
-  --r-xl: 24px;
+  --overlay: rgba(20, 24, 22, .36);
+  --selection: rgba(31, 91, 158, .18);
+  --shadow-dialog: 0 16px 40px rgba(0, 0, 0, .16), 0 2px 6px rgba(0, 0, 0, .08);
 
+  --font-mono: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, monospace;
 
-  --shade: 46, 58, 62;
-  --line: rgba(var(--shade), .085);
-  --line-strong: rgba(var(--shade), .11);
-  --glass-line: rgba(255, 255, 255, .88);
-  --glass-line-soft: rgba(255, 255, 255, .7);
+  --r-xs: 3px;
+  --r-sm: 5px;
+  --r-md: 6px;
+  --r-lg: 8px;
 
-
-  --e1: 0 1px 2px rgba(var(--shade), .05), 0 5px 14px rgba(var(--shade), .04);
-  --e2: 0 1px 3px rgba(var(--shade), .06), 0 12px 30px rgba(var(--shade), .055);
-  --e3: 0 2px 6px rgba(var(--shade), .07), 0 22px 50px rgba(var(--shade), .08);
-  --e-accent: 0 1px 2px rgba(20, 66, 148, .28), 0 8px 18px rgba(35, 109, 233, .24);
-  --e-accent-hover: 0 1px 2px rgba(20, 66, 148, .32), 0 12px 24px rgba(35, 109, 233, .3);
-  --e-danger: 0 1px 2px rgba(150, 40, 34, .26), 0 8px 18px rgba(255, 90, 80, .24);
-  --edge: inset 0 1px 0 rgba(255, 255, 255, .92);
-  --edge-strong: inset 0 1px 0 rgba(255, 255, 255, .98);
-
-
-  --stage: #dfe3e2;
-  --frame: #17191d;
-  --canvas: #f6f8f7;
-  --rail-bg: rgba(250, 251, 250, .92);
-  --pill-bg: linear-gradient(145deg, rgba(255, 255, 255, .93), rgba(246, 251, 249, .62));
-  --pill-inset: inset 0 -1px 0 rgba(105, 122, 128, .08);
-  --float-bg: rgba(246, 248, 247, .86);
-  --float-inset: inset 0 0 0 1px rgba(120, 132, 135, .13), inset 0 1px 0 rgba(255, 255, 255, .72);
-  --surface: linear-gradient(145deg, rgba(255, 255, 255, .97), rgba(249, 252, 251, .93));
-  --surface-solid: #fbfcfc;
-  --groove-bg: rgba(225, 231, 229, .5);
-  --groove-inset: inset 0 1px 0 rgba(255, 255, 255, .46);
-  --input-bg: rgba(255, 255, 255, .78);
-  --hover-bg: rgba(var(--shade), .045);
-  --press-bg: rgba(var(--shade), .075);
-  --overlay: rgba(16, 20, 24, .26);
-  --dark-surface: #131619;
-
-
-  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-  --fs-display-xl: 56px;
-  --fs-display-l: 40px;
-  --fs-display-m: 28px;
-  --track-eyebrow: .14em;
-
-
-  --hatch-ink: rgba(var(--shade), .16);
-  --hatch: repeating-linear-gradient(135deg, var(--hatch-ink) 0 1.5px, transparent 1.5px 6px);
-
-
-  --tick: rgba(var(--shade), .22);
-  --tick-strong: rgba(var(--shade), .5);
-  --plate-bg: rgba(21, 24, 26, .9);
-  --plate-line: rgba(255, 255, 255, .1);
-  --plate-ink: #f2f5f4;
-  --plate-soft: rgba(255, 255, 255, .56);
-
-
-  --cat-1-bg: #f6e7c4; --cat-1-ink: #7a5a16;
-  --cat-2-bg: #d7e7fb; --cat-2-ink: #275a96;
-  --cat-3-bg: #e4dcf7; --cat-3-ink: #5b4597;
-  --cat-4-bg: #f7dce1; --cat-4-ink: #94384c;
-  --cat-5-bg: #d8f0dc; --cat-5-ink: #2d7140;
-
-
-  --ambient-a: rgba(130, 221, 45, .07);
-  --ambient-b: rgba(35, 109, 233, .055);
-
-
-  --thread: rgba(var(--shade), .2);
-  --thread-active: rgba(35, 109, 233, .62);
-  --pulse-halo: rgba(35, 109, 233, .18);
-  --node-bg: rgba(255, 255, 255, .94);
-
-  --graph-1: 186, 140, 52;
-  --graph-2: 58, 122, 206;
-  --graph-3: 122, 96, 204;
-  --graph-4: 200, 90, 118;
-  --graph-5: 58, 150, 92;
-  --graph-ink: 46, 58, 62;
-  --graph-accent: 35, 109, 233;
-  --graph-lime: 110, 190, 36;
-  --graph-danger: 224, 68, 59;
-  --graph-paper: 255, 255, 255;
-
-
-  --ease-premium: cubic-bezier(.16, 1, .3, 1);
-
-
-  --rail-w: 232px;
-  --topbar-h: 64px;
-  --layer-overlay: 200;
-  --layer-toast: 400;
-  --control-h: 36px;
-  --control-h-sm: 30px;
-
-
-  --row-h: 48px;
-  --cell-px: 16px;
+  --rail-width: 216px;
+  --page-gap: 24px;
+  --topbar-h: 52px;
 }
-
-:root[data-density="comfy"]   { --row-h: 56px; --cell-px: 18px; }
-:root[data-density="compact"] { --row-h: 40px; --cell-px: 14px; }
-
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --ink: #eef2f1;
-  --ink-muted: #b0babd;
-  --ink-soft: #8d979a;
-  --ink-faint: #6c7679;
-  --leaf-text: #9be35a;
+  --ink: #e6eae7;
+  --ink-muted: #a4ada8;
+  --ink-soft: #818b86;
+  --ink-faint: #68726d;
+  --placeholder: #8b948f;
 
-  --blue: #4c8dff;
-  --blue-hover: #3d7ff2;
-  --blue-soft: rgba(76, 141, 255, .16);
-  --lime-soft: rgba(130, 221, 45, .16);
-  --red-text: #ff7a71;
-  --red-soft: rgba(255, 90, 80, .16);
-  --focus: rgba(76, 141, 255, .85);
+  --canvas: #101312;
+  --rail: #161a18;
+  --surface: #1b1f1d;
+  --surface-raised: #202522;
+  --surface-selected: #2a302c;
 
-  --shade: 0, 0, 0;
-  --line: rgba(255, 255, 255, .07);
-  --line-strong: rgba(255, 255, 255, .1);
-  --glass-line: rgba(255, 255, 255, .1);
-  --glass-line-soft: rgba(255, 255, 255, .07);
+  --line: #2b312d;
+  --line-strong: #3a413c;
+  --control-line: #636e64;
 
-  --e1: 0 1px 2px rgba(0, 0, 0, .3), 0 5px 14px rgba(0, 0, 0, .2);
-  --e2: 0 1px 3px rgba(0, 0, 0, .32), 0 12px 30px rgba(0, 0, 0, .28);
-  --e3: 0 2px 6px rgba(0, 0, 0, .36), 0 22px 50px rgba(0, 0, 0, .42);
-  --e-accent: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 18px rgba(76, 141, 255, .26);
-  --e-accent-hover: 0 1px 2px rgba(0, 0, 0, .4), 0 12px 24px rgba(76, 141, 255, .34);
-  --e-danger: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 18px rgba(255, 90, 80, .26);
-  --edge: inset 0 1px 0 rgba(255, 255, 255, .06);
-  --edge-strong: inset 0 1px 0 rgba(255, 255, 255, .09);
+  --accent: #8fb4e8;
+  --accent-solid: #3a6fb8;
+  --accent-solid-hover: #3f74bb;
+  --accent-soft: rgba(143, 180, 232, .12);
+  --focus: #8fb4e8;
 
-  --stage: #090b0c;
-  --frame: #000;
-  --canvas: #121517;
-  --rail-bg: rgba(22, 26, 28, .94);
-  --pill-bg: linear-gradient(145deg, rgba(255, 255, 255, .11), rgba(255, 255, 255, .05));
-  --pill-inset: inset 0 -1px 0 rgba(0, 0, 0, .2);
-  --float-bg: rgba(30, 34, 37, .9);
-  --float-inset: inset 0 0 0 1px rgba(255, 255, 255, .04), inset 0 1px 0 rgba(255, 255, 255, .06);
-  --surface: linear-gradient(145deg, rgba(29, 33, 36, .98), rgba(25, 29, 31, .96));
-  --surface-solid: #1b1f21;
-  --groove-bg: rgba(0, 0, 0, .22);
-  --groove-inset: inset 0 1px 2px rgba(0, 0, 0, .28);
-  --input-bg: rgba(255, 255, 255, .04);
-  --hover-bg: rgba(255, 255, 255, .05);
-  --press-bg: rgba(255, 255, 255, .08);
-  --overlay: rgba(0, 0, 0, .5);
+  --success: #8fc79a;
+  --warning: #d9b878;
+  --warning-soft: #2b2618;
+  --danger: #e59a95;
+  --danger-soft: #2e1f1e;
 
-  --hatch-ink: rgba(255, 255, 255, .12);
-  --tick: rgba(255, 255, 255, .16);
-  --tick-strong: rgba(255, 255, 255, .42);
-  --plate-bg: rgba(8, 10, 11, .78);
-
-  --cat-1-bg: rgba(232, 190, 96, .16);  --cat-1-ink: #ecc779;
-  --cat-2-bg: rgba(100, 160, 240, .16); --cat-2-ink: #92bdf5;
-  --cat-3-bg: rgba(160, 132, 236, .17); --cat-3-ink: #bfaaf4;
-  --cat-4-bg: rgba(236, 120, 140, .16); --cat-4-ink: #f2a3b1;
-  --cat-5-bg: rgba(110, 200, 130, .15); --cat-5-ink: #94dca6;
-
-  --ambient-a: rgba(130, 221, 45, .05);
-  --ambient-b: rgba(76, 141, 255, .07);
-
-  --thread: rgba(255, 255, 255, .16);
-  --thread-active: rgba(110, 160, 255, .72);
-  --pulse-halo: rgba(76, 141, 255, .28);
-  --node-bg: rgba(32, 37, 40, .94);
-  --graph-1: 236, 199, 121;
-  --graph-2: 146, 189, 245;
-  --graph-3: 191, 170, 244;
-  --graph-4: 242, 163, 177;
-  --graph-5: 148, 220, 166;
-  --graph-ink: 214, 222, 220;
-  --graph-accent: 76, 141, 255;
-  --graph-lime: 155, 227, 90;
-  --graph-danger: 255, 122, 113;
-  --graph-paper: 36, 41, 44;
+  --overlay: rgba(0, 0, 0, .55);
+  --selection: rgba(143, 180, 232, .22);
+  --shadow-dialog: 0 18px 44px rgba(0, 0, 0, .5), 0 2px 8px rgba(0, 0, 0, .35);
 }
-
-
-@property --fill { syntax: "<percentage>"; inherits: false; initial-value: 0%; }

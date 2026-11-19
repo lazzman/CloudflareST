@@ -139,7 +139,6 @@ try {
   check('modal-background-locked', Math.abs((await metrics()).top - beforeModal.top) < 2, {before: beforeModal.top, after: (await metrics()).top})
   await dialog.getByRole('button', {name: '关闭', exact: true}).click()
   check('modal-close-keeps-position', Math.abs((await metrics()).top - beforeModal.top) < 2, {before: beforeModal.top, after: (await metrics()).top})
-  await page.locator('.advanced-navigation > summary').click()
   await page.getByRole('navigation', {name: '主导航', exact: true}).getByRole('link', {name: '系统设置', exact: true}).click()
   await page.getByRole('heading', {name: '系统设置', exact: true}).waitFor()
   await waitIdle()
@@ -149,7 +148,6 @@ try {
     client.setTransport(async (input, init) => { if (String(input).includes('/tasks/task-demo/runs/run-demo-001')) await new Promise(resolve => setTimeout(resolve, 180)); return mock.mockFetch(input, init) })
   })
   await open('/tasks/task-demo/runs/run-demo-001', '执行详情')
-  await page.locator('.advanced-navigation').evaluate(element => { element.open = true })
   await scroll(1100)
   const saved = (await metrics()).top
   await page.getByRole('navigation', {name: '主导航', exact: true}).getByRole('link', {name: '系统设置', exact: true}).click()
@@ -161,7 +159,6 @@ try {
   check('back-restores-after-data', saved > 900 && Math.abs((await metrics()).top - saved) < 3, {expected: saved, actual: (await metrics()).top})
   await delay(2200)
   check('polling-keeps-position', Math.abs((await metrics()).top - saved) < 3, {expected: saved, actual: (await metrics()).top})
-  await page.locator('.advanced-navigation').evaluate(element => { element.open = true })
   await page.evaluate(async () => { const {router} = await import('/src/router.ts'); await router.replace({query: {scroll_probe: 'same-page'}}) })
   await delay(100)
   check('same-route-query-keeps-position', Math.abs((await metrics()).top - saved) < 3, {expected: saved, actual: (await metrics()).top})
