@@ -23,5 +23,6 @@ USER 10001:10001
 ENV CFST_LISTEN=0.0.0.0:8080 CFST_DATA_DIR=/var/lib/cfst CFST_RUNTIME_DIR=/tmp/cfst
 EXPOSE 8080
 VOLUME ["/var/lib/cfst"]
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 CMD wget -q -O /dev/null http://127.0.0.1:8080/healthz || exit 1
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD port="${CFST_LISTEN:-0.0.0.0:8080}"; port="${port##*:}"; wget -q -O /dev/null "http://127.0.0.1:${port}/healthz" || exit 1
 ENTRYPOINT ["/usr/local/bin/cfst-web"]

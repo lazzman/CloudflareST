@@ -74,7 +74,7 @@ docker pull ghcr.io/lazzman/cloudflarest:v1.2.3
 
 ### 启动与数据保护
 
-本地构建使用 `docker compose up -d --build`；改用预构建镜像后使用 `docker compose pull && docker compose up -d --no-build`。默认通过 `http://127.0.0.1:8080` 访问，不直接向公网开放管理端口。
+本地构建使用 `docker compose up -d --build`；改用预构建镜像后使用 `docker compose pull && docker compose up -d --no-build`。默认通过 `http://127.0.0.1:8080` 访问，不直接向公网开放管理端口。镜像的 `HEALTHCHECK` 会从 `CFST_LISTEN` 读取端口；修改监听端口时无需再覆盖 `healthcheck`，但 `ports` 的容器侧端口仍要与之一致。
 
 - 未配置 `CFST_ADMIN_PASSWORD` 时，每次启动生成随机密码，可在 Docker 主机执行 `docker compose exec -u 10001 cfst-web cat /tmp/cfst/admin-password` 读取；重启后须重新读取。自定义密码由容器管理平台安全注入，不提交到仓库。
 - 命名卷 `cfst-data` 保存数据库及 `master.key`，备份必须保留两者。升级前停止服务并完整备份；回退应使用与旧版本匹配的备份，不用旧程序打开新数据库，也不要多个实例共享数据卷。
