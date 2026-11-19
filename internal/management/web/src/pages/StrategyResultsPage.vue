@@ -2,10 +2,10 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { request, query, segment } from '../api/client'
-import type { Candidate, Page, Run, Task } from '../api/types'
+import type { Candidate, Page, Receipt, Run, Task } from '../api/types'
 import { useResource } from '../lib/useResource'
 import { useMutation } from '../lib/useMutation'
-import { active, metric } from '../lib/domain'
+import { active, metric, qualifiedCount } from '../lib/domain'
 import { resultColumns, type ResultSort, type ResultDirection } from '../lib/resultView'
 import { date } from '../lib/settings'
 import ResourceState from '../components/ResourceState.vue'
@@ -13,6 +13,7 @@ import MutationState from '../components/MutationState.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 import PagerControl from '../components/PagerControl.vue'
 import ModalDialog from '../components/ModalDialog.vue'
+import DnsDeliveryDialog from '../components/DnsDeliveryDialog.vue'
 import PageHeader from '../components/PageHeader.vue'
 import PendingOperationNotice from '../components/PendingOperationNotice.vue'
 const route = useRoute(), router = useRouter()
@@ -37,15 +38,41 @@ watch(() => candidates.data.value?.page, value => { if (value && value !== page.
 const deliveryWarning = computed(() => run.value?.deliveries?.some(item => ['failed','unconfirmed','unknown'].includes(item.state || '')))
 const runError = computed(() => run.value?.reason || run.value?.result?.error)
 const mutation = useMutation(), stopping = ref(false)
+const dnsOpen = ref(false)
+const dnsReceipt = ref<Receipt>()
+const dnsQualified = computed(() => {
+  const current = run.value
+  if (!current) return undefined
+  const ipv4 = qualifiedCount(current, 'ipv4')
+  const ipv6 = qualifiedCount(current, 'ipv6')
+  return ipv4 === undefined && ipv6 === undefined ? undefined : (ipv4 || 0) + (ipv6 || 0)
+})
+const dnsReady = computed(() => {
+  const current = run.value
+  if (!current || active(current) || current.deleted_at) return false
+  return (dnsQualified.value || 0) > 0
+})
+const dnsBlockReason = computed(() => {
+  const current = run.value
+  if (!current) return '请先选择一次运行'
+  if (active(current)) return '本次执行结束后才能手动推送'
+  if (current.deleted_at) return '已删除的运行不能推送'
+  if (dnsQualified.value === undefined) return '本次合格 IP 未知，暂不能手动推送'
+  return '本次没有可推送的最终合格 IP'
+})
+function openDns() { dnsReceipt.value = undefined; dnsOpen.value = true }
+function dnsDone(receipt: Receipt) { dnsReceipt.value = receipt; dnsOpen.value = false; void resource.reload() }
+watch(selectedId, () => { dnsReceipt.value = undefined; dnsOpen.value = false })
 function selectRun(event: Event) { const id = (event.target as HTMLSelectElement).value; if (!id) historyPage.value = 1; void router.replace({query: id ? {run: id} : {}}) }
 function toggleSort(field: ResultSort) { direction.value = sort.value === field ? direction.value === 'asc' ? 'desc' : 'asc' : field === 'speed_mb_s' ? 'desc' : 'asc'; sort.value = field; page.value = 1 }
 async function stop() { if (run.value && await mutation.submit('/runs/' + segment(run.value.id) + '/cancel')) { stopping.value = false; void resource.reload() } }
 </script>
 <template>
   <RouterLink to="/tasks" class="back-link">← 优选策略</RouterLink>
-  <PageHeader :title="taskResource.data.value?.name || 'IP 结果'" desc="IP 优选结果"><RouterLink :to="base + '/edit'" class="button">编辑策略</RouterLink></PageHeader>
+  <PageHeader :title="taskResource.data.value?.name || 'IP 结果'" desc="IP 优选结果"><button v-if="run" type="button" class="primary" :disabled="!dnsReady" :title="dnsReady ? '手动选择现有 DNS 记录并推送本次结果' : dnsBlockReason" @click="openDns">推送 DNS</button><RouterLink :to="base + '/edit'" class="button">编辑策略</RouterLink></PageHeader>
   <ResourceState :loading="taskResource.loading.value || history.loading.value || resource.loading.value" :error="taskResource.error.value || history.error.value || resource.error.value" @retry="taskResource.reload(); history.reload(); resource.reload()" />
   <PendingOperationNotice v-if="selectedId" :scope="'/api/v1/runs/' + selectedId" label="本次执行" @resolved="resource.reload" />
+  <MutationState v-if="dnsReceipt" :receipt="dnsReceipt" />
   <div v-if="history.data.value" class="results-toolbar"><label>运行时间<select aria-label="运行时间" :value="requestedRun" @change="selectRun"><option value="">最新一次{{ historyPage > 1 ? '（已读取）' : '' }}</option><option v-if="requestedRun && !history.data.value.items.some(item => item.id === requestedRun)" :value="requestedRun">{{ run ? date(run.queued_at) : '当前所选运行' }}</option><option v-for="item in history.data.value.items" :key="item.id" :value="item.id">{{ date(item.queued_at) }} · {{ item.status === 'completed' ? '已完成' : item.status === 'queued' ? '排队中' : item.status === 'running' ? '运行中' : item.status === 'failed' ? '失败' : item.status === 'no_results' ? '无合格结果' : item.status === 'cancelled' ? '已取消' : '已中断' }}</option></select></label><div class="history-pages" v-if="history.data.value.total > 20"><button :disabled="historyPage <= 1" @click="historyPage--">较新记录</button><span class="small">{{ historyPage }} / {{ Math.ceil(history.data.value.total / 20) }}</span><button :disabled="historyPage * 20 >= history.data.value.total" @click="historyPage++">更早记录</button></div><div v-if="run" class="result-state"><StatusBadge :value="run.status" /><span class="small">{{ date(run.queued_at) }}</span><button v-if="active(run)" @click="stopping = true">停止本次</button></div></div>
   <p v-if="runError" role="alert" class="notice danger">{{ runError }}</p>
   <p v-if="run && active(run)" class="notice">{{ run.status === 'queued' ? '等待运行，完成后将在这里显示 IP 结果。' : '正在运行；结果更新后会自动显示，已产生的数据不代表最终排名。' }}</p>
@@ -57,6 +84,7 @@ async function stop() { if (run.value && await mutation.submit('/runs/' + segmen
     <PagerControl v-if="candidates.data.value" :page="page" :total="candidates.data.value.total" :size="50" @change="page = $event" />
   </section>
   <section v-else-if="history.data.value && !selectedId && !history.error.value" class="empty-state"><h2>还没有运行结果</h2><p>在策略列表开启定时，或运行一次。</p><RouterLink to="/tasks">返回策略列表</RouterLink></section>
-  <details class="results-advanced"><summary>高级操作与诊断</summary><p class="small muted">仅在需要推送、排查或管理历史时打开，不改变现有自动推送配置。</p><nav class="actions"><RouterLink v-if="run" :to="base + '/runs/' + run.id">DNS／通知、详细诊断</RouterLink><RouterLink :to="base + '/runs'">管理运行记录</RouterLink><RouterLink :to="base + '/recycle-bin'">回收站</RouterLink><RouterLink :to="base">策略高级管理</RouterLink></nav></details>
+  <details class="results-advanced"><summary>高级操作与诊断</summary><p class="small muted">仅在需要排查或管理历史时打开，不改变现有自动推送配置。</p><nav class="actions"><RouterLink v-if="run" :to="base + '/runs/' + run.id">投递记录与详细诊断</RouterLink><RouterLink :to="base + '/runs'">管理运行记录</RouterLink><RouterLink :to="base + '/recycle-bin'">回收站</RouterLink><RouterLink :to="base">策略高级管理</RouterLink></nav></details>
+  <DnsDeliveryDialog v-if="dnsOpen" :task-id="taskId" :run-id="selectedId" :run="run" @close="dnsOpen = false" @done="dnsDone" />
   <ModalDialog v-if="stopping" title="停止本次运行" @close="stopping = false"><p>只停止本策略的这次运行，不关闭未来定时，也不撤销已经完成的推送。</p><MutationState :error="mutation.error.value" /><div class="actions"><button class="safe-focus" @click="stopping = false">返回</button><button class="danger-button" :disabled="mutation.busy.value" @click="stop">确认停止</button></div></ModalDialog>
 </template>

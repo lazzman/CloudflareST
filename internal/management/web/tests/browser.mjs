@@ -246,6 +246,17 @@ try {
   await page.keyboard.press('Escape')
   checks.push('现有 DNS 目标、合格族匹配、C-02 风险确认')
 
+  await open('/tasks/task-demo/results?run=run-demo-001', '边缘节点 · 每日复核')
+  const resultsPush = page.getByRole('button', { name: '推送 DNS', exact: true })
+  assert.equal(await resultsPush.count(), 1, '结果页应直接提供手动 DNS 推送入口')
+  await resultsPush.click()
+  const resultsDnsDialog = page.getByRole('dialog', { name: '从本次结果推送至现有 DNS 记录' })
+  await resultsDnsDialog.waitFor()
+  assert((await resultsDnsDialog.innerText()).includes('run-demo-001'), '结果页入口应使用当前运行')
+  await page.keyboard.press('Escape')
+  await resultsDnsDialog.waitFor({ state: 'detached' })
+  checks.push('结果页直接提供手动 DNS 推送入口')
+
   await page.evaluate(() => { window.__testRunVariant = 'sparse' })
   await open('/settings', '系统设置')
   await open('/tasks/task-demo/runs/run-demo-001', '边缘节点 · 每日复核')
