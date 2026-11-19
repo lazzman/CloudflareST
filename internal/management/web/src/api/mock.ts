@@ -17,6 +17,11 @@ const connections: Connection[] = [
   { id: 'connection-telegram', kind: 'telegram', name: '运行通知', account_id: 'demo-chat', revision: 1, credentials_set: true, referenced_by: ['task-demo'] },
   { id: 'connection-wecom', kind: 'wecom', name: '运维群机器人', account_id: 'demo-room', revision: 1, credentials_set: true, referenced_by: [] },
 ]
+const connectionSecrets = new Map<string, Record<string, string>>([
+  ['connection-alidns', { access_key_id: 'FAKE_ACCESS_KEY_ID', access_key_secret: 'FAKE_ACCESS_KEY_SECRET' }],
+  ['connection-telegram', { bot_token: '100000:FAKE_TELEGRAM_TOKEN', chat_id: '-1000000000000' }],
+  ['connection-wecom', { webhook_url: 'https://example.invalid/cgi-bin/webhook/send?key=FAKE_WEBHOOK_KEY' }],
+])
 const task: Task = {
   id: 'task-demo', name: '边缘节点 · 每日复核', revision: 4, archived: false,
   config: { ...structuredClone(DEFAULT_CONFIG), ipv6_enabled: true, sources: [{ kind: 'builtin', value: 'ipv4' }, { kind: 'cidr', value: '192.0.2.0/24' }, { kind: 'domain', value: 'cdn.example.test' }] },
@@ -113,10 +118,12 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
   }
   if (path === '/queue' && method === 'GET') { const activeRun = runs.find(item => item.status === 'running'); return response({ current: activeRun ? compactRun(activeRun) : null, waiting: runs.filter(item => item.status === 'queued').map(compactRun), server_time: new Date().toISOString() } satisfies Queue) }
   if (path === '/connections' && method === 'GET') return response(structuredClone(connections))
+  if (path.startsWith('/connections/') && path.endsWith('/credentials') && method === 'GET') { const id = decodeURIComponent(path.split('/')[2]!); return response({ secrets: structuredClone(connectionSecrets.get(id) || {}) }) }
   if (path === '/connections' && method === 'POST') {
     const draft = body.connection as Record<string, unknown>
     const connection: Connection = { id: 'connection-local-' + Date.now(), kind: draft.kind as ConnectionKind, name: String(draft.name || ''), account_id: String(draft.account_id || ''), credentials_set: true, revision: 1, referenced_by: [] }
     connections.unshift(connection)
+    connectionSecrets.set(connection.id, structuredClone((draft.secrets as Record<string, string>) || {}))
     return response(makeReceipt(String(body.operation_id), connection.id), 202)
   }
   if (path === '/operation-logs' && method === 'GET') return response(logs.filter(item => logMatches(item, url.searchParams)))
@@ -214,9 +221,10 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
     if (String(item.revision) !== new Headers(init.headers).get('If-Match')) return fail(409, 'REVISION_CONFLICT', '连接版本已变化，请载入最新版本。')
     if (draft.secrets !== undefined && (!draft.secrets || !Object.values(draft.secrets as object).length || Object.values(draft.secrets as object).some(value => typeof value !== 'string' || !value.trim()))) return fail(422, 'INVALID_SECRETS', '替换凭据时须提供完整新值；仅改名时应省略 secrets。')
     Object.assign(item, { name: draft.name || item.name, account_id: draft.account_id || item.account_id, revision: Number(item.revision || 0) + 1 })
+    if (draft.secrets !== undefined) connectionSecrets.set(id, structuredClone(draft.secrets as Record<string, string>))
     return response(makeReceipt(String(body.operation_id), id), 202)
   }
-  if (path.match(/^\/connections\/[^/]+$/) && method === 'DELETE') { const id = path.split('/')[2]!; const index = connections.findIndex(item => item.id === id); if (index < 0) return fail(404, 'NOT_FOUND', '连接不存在。'); connections.splice(index, 1); return response(makeReceipt(String(new Headers(init.headers).get('Idempotency-Key')), id), 202) }
+  if (path.startsWith('/connections/') && path.split('/').length === 3 && method === 'DELETE') { const id = path.split('/')[2]!; const index = connections.findIndex(item => item.id === id); if (index < 0) return fail(404, 'NOT_FOUND', '连接不存在。'); connections.splice(index, 1); connectionSecrets.delete(id); return response(makeReceipt(String(new Headers(init.headers).get('Idempotency-Key')), id), 202) }
   if (path.match(/^\/dns-targets\/[^/]+\/auto-write-protection\/clear$/) && method === 'POST') { if (Number(body.revision) !== lockedTarget.protection?.revision) return fail(409, 'TARGET_PROTECTION_CHANGED', '保护版本已变化，请重新读取。'); if (lockedTarget.protection) lockedTarget.protection.active = false; return response(makeReceipt(String(body.operation_id), String(path.split('/')[2])), 202) }
   return fail(404, 'NOT_FOUND', method + ' /api/v1' + path + ' 在本地预览适配器中没有对应样例路由。')
 }

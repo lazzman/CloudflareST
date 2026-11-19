@@ -274,6 +274,8 @@ try {
   await connectionDialog.getByRole('button', { name: '保存连接', exact: true }).click()
   await page.getByText('本地样例连接', { exact: true }).waitFor()
   const connectionRow = page.getByRole('row').filter({ hasText: '本地样例连接' })
+  const connectionText = await connectionRow.innerText()
+  assert(connectionText.includes('仅本地临时测试') && connectionText.includes('不是真实凭据'), '连接列表应明文显示已保存配置与凭据')
   await connectionRow.getByRole('button', { name: '编辑 / 替换凭据', exact: true }).click()
   const editDialog = page.getByRole('dialog', { name: '编辑连接 / 替换凭据' })
   assert.equal(await editDialog.locator('input[type=password]').count(), 0, '编辑时不可回填凭据')
@@ -284,7 +286,7 @@ try {
   assert.equal(renameWrite.method, 'PATCH')
   assert.equal(Object.hasOwn(renameWrite.body.connection, 'secrets'), false, '仅改名请求不得携带 secrets')
   assert(renameWrite.headers['if-match'], '仅改名也应携带版本')
-  checks.push('新增连接、仅改名省略secrets并带版本、不回读凭据（内存模拟）')
+  checks.push('新增连接明文回显、仅改名省略secrets并带版本（内存模拟）')
 
   await open('/operation-logs', '操作日志')
   await page.getByLabel('动作', { exact: true }).fill('target_protection')

@@ -214,6 +214,8 @@ func (service *Service) readConnection(response http.ResponseWriter, request *ht
 		return
 	}
 	switch parts[2] {
+	case "credentials":
+		writeJSON(response, 200, map[string]map[string]string{"secrets": credential.Secrets})
 	case "domains":
 		domains, err := service.provider.Domains(request.Context(), credential)
 		if err != nil {

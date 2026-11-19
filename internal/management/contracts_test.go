@@ -3,6 +3,7 @@ package management
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -284,6 +285,48 @@ func TestContractNameOnlyConnectionEditDoesNotExposeOrReplaceSecrets(t *testing.
 	}
 	if strings.Contains(string(publicBody), "ciphertext") || strings.Contains(string(publicBody), "bot_token") {
 		t.Fatal("连接读接口不得泄露秘密")
+	}
+}
+
+func TestContractConnectionCredentialsArePlaintextOnlyOnDedicatedRead(t *testing.T) {
+	fixture := newAcceptanceFixture(t, acceptanceNow(), nil, nil)
+	acceptanceConnection(t, fixture, "contract-plaintext-connection", "alidns", "fake-account-001")
+	connection := acceptanceGet[Connection](t, fixture, "connections", "contract-plaintext-connection")
+	secrets := map[string]string{"access_key_id": "FAKE_ACCESS_KEY_ID", "access_key_secret": "FAKE_ACCESS_KEY_SECRET"}
+	connection.Ciphertext, _ = fixture.service.encrypt(secrets)
+	acceptancePut(t, fixture, "connections", connection.ID, connection)
+
+	server := httptest.NewServer(fixture.service.Handler())
+	defer server.Close()
+	client := acceptanceLogin(t, server)
+
+	list := acceptanceDo(t, client.client, http.MethodGet, client.base+"/api/v1/connections", nil, "", "")
+	defer list.Body.Close()
+	listBody, err := io.ReadAll(list.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(listBody), secrets["access_key_id"]) || strings.Contains(string(listBody), secrets["access_key_secret"]) {
+		t.Fatal("连接列表不应回显凭据")
+	}
+
+	response := acceptanceDo(t, client.client, http.MethodGet, client.base+"/api/v1/connections/"+connection.ID+"/credentials", nil, "", "")
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(response.Body)
+		t.Fatalf("读取明文凭据失败: %d %s", response.StatusCode, body)
+	}
+	if response.Header.Get("Cache-Control") != "no-store" {
+		t.Fatalf("凭据响应必须禁止缓存: %q", response.Header.Get("Cache-Control"))
+	}
+	var body struct {
+		Secrets map[string]string `json:"secrets"`
+	}
+	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
+		t.Fatal(err)
+	}
+	if body.Secrets["access_key_id"] != secrets["access_key_id"] || body.Secrets["access_key_secret"] != secrets["access_key_secret"] {
+		t.Fatalf("凭据读取结果不匹配: %#v", body.Secrets)
 	}
 }
 

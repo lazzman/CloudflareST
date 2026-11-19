@@ -71,6 +71,7 @@ button:active:not(:disabled) { transform: translateY(1px); }
 .icon-button { min-width: 40px; padding: 8px; background: transparent; border-color: transparent; box-shadow: none; }
 .icon { flex: 0 0 auto; vertical-align: middle; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+h1[tabindex="-1"]:focus-visible { outline: none; }
 summary { max-width: 100%; padding: 10px 2px; cursor: pointer; overflow-wrap: anywhere; }
 summary:hover { color: var(--blue); }
 th, td { text-align: left; vertical-align: top; overflow-wrap: anywhere; }
