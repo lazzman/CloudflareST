@@ -8,6 +8,7 @@ import { cloneDto } from '../lib/serialize'
 import ModalDialog from './ModalDialog.vue'
 import TargetFacts from './TargetFacts.vue'
 import MutationState from './MutationState.vue'
+import PendingOperationNotice from './PendingOperationNotice.vue'
 const props = defineProps<{ target: Target }>()
 const emit = defineEmits<{ changed: [] }>()
 const open = ref(false)
@@ -38,6 +39,7 @@ async function clear() {
   <button v-if="target.protection?.active" type="button" @click="show">解除自动写入暂停</button>
   <ModalDialog v-if="open && current" title="C-02：复核后解除目标自动写入暂停" @close="open = false">
     <TargetFacts :target="current" :read-at="readAt" />
+    <PendingOperationNotice v-if="current.target_id" :scope="'/api/v1/dns-targets/' + current.target_id" label="此 DNS 目标" @resolved="emit('changed')" />
     <button type="button" :disabled="reading || mutation.busy.value" @click="refresh">{{ reading ? '读取中…' : '只读核对最新记录' }}</button>
     <p v-if="readError" class="notice warning" role="alert">当前值不可读取：{{ readError }}。不代表旧写请求已停止。</p>
     <p class="notice danger">旧远端请求仍可能迟到并覆盖新值。解除仅恢复这个实际目标的后续自动写入资格，不更新 IP、不补发、不重跑、不改任务开关，不改写原未确认记录；所有共享引用任务均受影响。</p>

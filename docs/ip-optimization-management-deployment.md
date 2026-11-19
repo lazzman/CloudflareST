@@ -16,7 +16,7 @@ GitHub 自动构建、GHCR 镜像标签及权限要求见[Docker 镜像发布说
 
 公网访问建议置于受信任的 HTTPS 反向代理之后，使用 HTTPS 时将 CFST_SECURE_COOKIE=true；不要直接把不加密的 HTTP 管理端口暴露到互联网。Compose 默认仅发布至宿主机 loopback。若代理会转发登录来源，请通过 CFST_TRUSTED_PROXIES 明确配置其容器 CIDR（可逗号分隔）；默认不信任任何代理头。反向代理必须删除来访客户端自行提供的转发头并自行生成规范的 X-Forwarded-For 链，不要信任整个 LAN／Docker 网段内不受控的主机。
 
-支持通过 HTTP IP／域名访问并保存配置，不要求先配置 HTTPS。浏览器未提供 `crypto.subtle`／`crypto.randomUUID` 时，前端使用兼容的 SHA-256 实现和 `crypto.getRandomValues` 生成操作标识，保留防重复提交及原号核查能力，不使用 `Math.random`。HTTP 不加密管理密码和连接凭据的传输，仅建议在可信网络使用；公网仍建议配置 HTTPS。若浏览器连安全随机数都不可用，会明确提示 `BROWSER_RANDOM_UNAVAILABLE` 和“本次未提交”，不会生成待核查操作号。真正携带操作号的网络中断仍需按原号核查，不能据此直接重交。
+支持通过 HTTP IP／域名访问并保存配置，不要求先配置 HTTPS。浏览器未提供 `crypto.subtle`／`crypto.randomUUID` 时，前端使用兼容的 SHA-256 实现和 `crypto.getRandomValues` 生成操作标识，保留防重复提交及原号收据查询能力，不使用 `Math.random`。HTTP 不加密管理密码和连接凭据的传输，仅建议在可信网络使用；公网仍建议配置 HTTPS。若浏览器连安全随机数都不可用，会明确提示 `BROWSER_RANDOM_UNAVAILABLE` 和“本次未提交”，不会生成待确认操作号。真正携带操作号的网络中断会自动读取原号收据；仍未确认时沿用原号重试，不能换号直接重交。
 
 NET_RAW 仅为 ICMP 探测所需的能力；若容器仍无法创建 ICMP socket，界面会明确提示，需手动切换 TCPING，不会自动降级。容器网络限制可能影响 ICMP，须在部署环境实测。
 
@@ -49,7 +49,7 @@ NET_RAW 仅为 ICMP 探测所需的能力；若容器仍无法创建 ICMP socket
 
 ## 验收命令
 
-RC-01～05 已修复；可运行 `node docs/reconfirmation-2026-11-15/check-go.mjs` 和 `node scripts/test-management-rc-fixes.mjs` 复验。未知操作先到“操作核查”读取原号，再核对实际对象、确认范围与重复风险，领取一次同范围新尝试许可后回表单手动提交；核查本身不执行业务，不可用清浏览器存储替代。
+RC-01～05 已修复；可运行 `node docs/reconfirmation-2026-11-15/check-go.mjs` 和 `node scripts/test-management-rc-fixes.mjs` 复验。写入超时后前端自动读取原操作收据；确认后直接采用该结果，仍无法确认时只在对应任务、执行或连接页面提示，并沿用原操作号重试，不生成新号。后端仍保留幂等与人工恢复接口，管理界面不再提供该入口。
 
 七类完整性缺口已补齐并复验；逐条实现／验证边界见[AC追踪表](ip-optimization-ac-trace-2026-11-15.md)。新增 `node scripts/test-management-completeness.mjs` 检查详情、队列、分页及返回状态，`node docs/completeness-2026-11-15/check-go.mjs` 重放原三个契约反例。虚构容量检查需显式设置 `CFST_STORAGE_CAPACITY_TEST=1`；不发网络测速。
 

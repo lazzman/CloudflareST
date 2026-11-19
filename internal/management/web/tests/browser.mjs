@@ -376,7 +376,7 @@ try {
   const storage = await page.evaluate(() => Object.entries(localStorage))
   assert(storage.every(([key, value]) => {
     const stored = JSON.parse(value)
-    return key === 'cloudflarest.pending-operation-ids' && stored.version === 2 && Array.isArray(stored.operations) && stored.operations.every(item => Object.keys(item).every(field => ['operation_id', 'fingerprint'].includes(field)) && typeof item.operation_id === 'string' && (item.fingerprint === undefined || /^[0-9a-f]{64}$/.test(item.fingerprint)))
+    return key === 'cloudflarest.pending-operation-ids' && stored.version === 2 && Array.isArray(stored.operations) && stored.operations.every(item => Object.keys(item).every(field => ['operation_id', 'fingerprint', 'scope'].includes(field)) && typeof item.operation_id === 'string' && (item.fingerprint === undefined || /^[0-9a-f]{64}$/.test(item.fingerprint)) && (item.scope === undefined || typeof item.scope.path === 'string' && typeof item.scope.method === 'string'))
   }), '本地存储只能含操作号与不可逆非敏感动作标识')
   assert.equal(blocked.length, 0, '不允许访问任何外部地址')
   assert.deepEqual(errors, [], '浏览器不应出现运行时异常')

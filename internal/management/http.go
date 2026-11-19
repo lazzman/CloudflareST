@@ -30,7 +30,7 @@ func writeError(response http.ResponseWriter, err error) {
 		writeJSON(response, 404, &apiError{404, "not_found", "对象不存在或已被清理"})
 		return
 	}
-	writeJSON(response, 500, &apiError{500, "internal_error", "服务处理失败；请保留原操作号并只读核查，勿直接重复提交"})
+	writeJSON(response, 500, &apiError{500, "internal_error", "服务处理失败；系统会自动查询上次结果，仍未确认时请核对实际对象，勿换号重复提交"})
 }
 
 func decodeJSON(response http.ResponseWriter, request *http.Request, value any) error {

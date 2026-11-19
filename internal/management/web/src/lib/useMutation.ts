@@ -12,7 +12,7 @@ export function useMutation() {
     error.value = undefined
     receipt.value = undefined
     try { receipt.value = await write(path, options); return receipt.value }
-    catch (caught) { error.value = caught instanceof ApiError ? caught : new ApiError(0, { message: '操作未能确认，请核查原操作号' }, true) }
+    catch (caught) { error.value = caught instanceof ApiError ? caught : new ApiError(0, { message: '操作结果未确认，请核对本页数据后重试' }, true) }
     finally { busy.value = false }
   }
   return { busy, error, receipt, submit }

@@ -1,18 +1,34 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, OPERATION_STORAGE_KEY, apiPath, forgetOperation, getPendingIds, getUnscopedIds, lookupOperation, newOperationId, request, restoreOperationIds, setCsrf, setTransport, setUnauthorizedHandler, write } from '../src/api/client'
+import { ApiError, OPERATION_STORAGE_KEY, apiPath, forgetOperation, getPendingIds, getPendingOperations, lookupOperation, newOperationId, request, restoreOperationIds, setCsrf, setTransport, setUnauthorizedHandler, write } from '../src/api/client'
 import { useMutation } from '../src/lib/useMutation'
 const saved = new Map<string, string>()
 beforeEach(() => {
-  getPendingIds().forEach(forgetOperation)
   saved.clear()
   vi.stubGlobal('localStorage', { getItem: (key: string) => saved.get(key) || null, setItem: (key: string, value: string) => { saved.set(key, value) } })
+  getPendingIds().forEach(forgetOperation)
+  saved.clear()
   setCsrf('csrf-test-value')
   setUnauthorizedHandler(() => {})
 })
 afterEach(() => { getPendingIds().forEach(forgetOperation); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status, headers: { 'Content-Type': 'application/json' } })
 
-describe('同源契约与操作恢复', () => {
+async function failThenLookup(state: string, status = 200) {
+  const posts: { id: string; body: Record<string, unknown> }[] = []
+  const gets: string[] = []
+  setTransport(async (input, init) => {
+    if ((init?.method || 'GET') === 'GET') {
+      gets.push(String(input))
+      return status === 404 ? json({ code: 'operation_unknown', message: '查不到原号' }, 404) : json({ operation_id: posts[0]?.id, state })
+    }
+    const body = JSON.parse(String(init?.body)) as Record<string, unknown>
+    posts.push({ id: String(body.operation_id), body })
+    throw new TypeError('模拟响应丢失')
+  })
+  return { posts, gets }
+}
+
+describe('同源契约与操作收据', () => {
   it.each(['subtle', 'digest', 'randomUUID', 'both'])('缺少 %s 时兼容 HTTP 环境保存连接', async missing => {
     const nativeCrypto = crypto
     vi.stubGlobal('crypto', {
@@ -53,24 +69,6 @@ describe('同源契约与操作恢复', () => {
     expect(newOperationId()).toBe('ffffffff-ffff-4fff-bfff-ffffffffffff')
     expect(getRandomValues).toHaveBeenCalledOnce()
   })
-  it.each(['/tasks', '/connections'])('原生与 HTTP 兼容摘要互认 %s 的动作锁', async path => {
-    const nativeCrypto = crypto
-    const transport = vi.fn(async () => { throw new Error('模拟响应丢失') })
-    setTransport(transport)
-    const body = path === '/tasks' ? { task: { name: '中文任务', config: { sample_size: 20 } } } : { connection: { name: '中文连接', secrets: { bot_token: 'FAKE_MEMORY_ONLY' } } }
-    await expect(write(path, { body })).rejects.toMatchObject({ uncertain: true })
-    const nativeId = getPendingIds()[0]!
-    vi.stubGlobal('crypto', { getRandomValues: nativeCrypto.getRandomValues.bind(nativeCrypto) })
-    await expect(write(path, { body })).rejects.toMatchObject({ details: { code: 'ACTION_UNCONFIRMED', operation_id: nativeId } })
-    expect(transport).toHaveBeenCalledOnce()
-    forgetOperation(nativeId)
-    await expect(write(path, { body })).rejects.toMatchObject({ uncertain: true })
-    const fallbackId = getPendingIds()[0]!
-    vi.stubGlobal('crypto', nativeCrypto)
-    await expect(write(path, { body })).rejects.toMatchObject({ details: { code: 'ACTION_UNCONFIRMED', operation_id: fallbackId } })
-    expect(transport).toHaveBeenCalledTimes(2)
-    expect(saved.get(OPERATION_STORAGE_KEY)).not.toContain('FAKE_MEMORY_ONLY')
-  })
   it('读取直接实体，不解包不存在的 data', async () => {
     setTransport(async (input, init) => { expect(input).toBe('/api/v1/defaults'); expect(init?.credentials).toBe('same-origin'); expect(init?.redirect).toBe('error'); return json({ timezone: 'Asia/Shanghai' }) })
     await expect(request('/defaults')).resolves.toEqual({ timezone: 'Asia/Shanghai' })
@@ -102,122 +100,132 @@ describe('同源契约与操作恢复', () => {
     })
     await write('/runs/run-test', { method: 'DELETE' })
   })
-  it('未知响应保留原号且只阻止相同动作，不存任何凭据或提交参数', async () => {
-    const transport = vi.fn(async () => { throw new TypeError('模拟断网') })
-    setTransport(transport)
-    await expect(write('/connections', { body: { connection: { secrets: { bot_token: 'only-in-memory' } } } })).rejects.toMatchObject({ uncertain: true })
-    const id = getPendingIds()[0]
-    expect(id).toBeTruthy()
-    expect(JSON.parse(saved.get(OPERATION_STORAGE_KEY)!)).toEqual({ version: 2, operations: [{ operation_id: id, fingerprint: expect.stringMatching(/^[0-9a-f]{64}$/), scope: {method:'POST',path:'/api/v1/connections'} }] })
-    expect(saved.get(OPERATION_STORAGE_KEY)).not.toContain('only-in-memory')
-    await expect(write('/connections', { body: { connection: { secrets: { bot_token: 'only-in-memory' } } } })).rejects.toMatchObject({ details: { code: 'ACTION_UNCONFIRMED', operation_id: id } })
-    expect(transport).toHaveBeenCalledTimes(1)
-  })
-  it('入队 accepted 后可取消该执行或触发不同任务，异步收尾不阻断无关写入', async () => {
-    const paths: string[] = []
+  it('响应丢失后自动读取原号收据，确认后不再重交', async () => {
+    let posts = 0
+    let operationId = ''
     setTransport(async (input, init) => {
-      paths.push(String(input))
-      const body = JSON.parse(String(init?.body))
-      return json({ operation_id: body.operation_id, object_id: paths.length === 1 ? 'run-accepted' : 'another-object', state: 'accepted' }, 202)
+      if ((init?.method || 'GET') === 'GET') {
+        expect(input).toBe('/api/v1/operations/' + operationId)
+        return json({ operation_id: operationId, state: 'completed' })
+      }
+      posts++
+      operationId = JSON.parse(String(init?.body)).operation_id
+      throw new TypeError('模拟响应丢失')
     })
-    const first = await write('/tasks/task-first/runs')
-    expect(first.state).toBe('accepted')
-    expect(getPendingIds()).toEqual([])
-    await expect(write('/runs/run-accepted/cancel')).resolves.toMatchObject({ state: 'accepted' })
-    await expect(write('/tasks/task-second/runs')).resolves.toMatchObject({ state: 'accepted' })
-    expect(paths).toEqual(['/api/v1/tasks/task-first/runs', '/api/v1/runs/run-accepted/cancel', '/api/v1/tasks/task-second/runs'])
-  })
-  it('未知入队仍允许取消已知执行、不同任务和设置写入，但原动作不能换号重交', async () => {
-    setTransport(async () => { throw new Error('模拟首响应丢失') })
-    await expect(write('/tasks/task-unknown/runs')).rejects.toMatchObject({ uncertain: true })
-    const originalId = getPendingIds()[0]!
-    const transport = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
-      const body = JSON.parse(String(init?.body))
-      return json({ operation_id: body.operation_id, state: 'accepted' }, 202)
-    })
-    setTransport(transport)
-    await expect(write('/runs/known-run/cancel')).resolves.toMatchObject({ state: 'accepted' })
-    await expect(write('/tasks/different-task/runs')).resolves.toMatchObject({ state: 'accepted' })
-    await expect(write('/settings', { method: 'PATCH', body: { timezone: 'UTC', history_days: 30 } })).resolves.toMatchObject({ state: 'accepted' })
-    await expect(write('/tasks/task-unknown/runs')).rejects.toMatchObject({ details: { code: 'ACTION_UNCONFIRMED', operation_id: originalId } })
-    expect(transport).toHaveBeenCalledTimes(3)
-    expect(getPendingIds()).toEqual([originalId])
-  })
-  it('同一动作同时提交时不会生成第二个操作号', async () => {
-    let release: (() => void) | undefined
-    const gate = new Promise<void>(resolve => { release = resolve })
-    const transport = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
-      await gate
-      const body = JSON.parse(String(init?.body))
-      return json({ operation_id: body.operation_id, state: 'accepted' }, 202)
-    })
-    setTransport(transport)
-    const first = write('/tasks/task-concurrent/runs')
-    await vi.waitFor(() => { expect(transport).toHaveBeenCalledOnce() })
-    await expect(write('/tasks/task-concurrent/runs')).rejects.toMatchObject({ details: { code: 'ACTION_UNCONFIRMED' } })
-    release?.()
-    await first
-    expect(transport).toHaveBeenCalledOnce()
-  })
-  it('新动作保存操作号失败则回滚内存且不发请求，原有待核查锁不受影响', async () => {
-    setTransport(async () => { throw new Error('原动作响应丢失') })
-    await expect(write('/tasks/original/runs')).rejects.toMatchObject({ uncertain: true })
-    const originalId = getPendingIds()[0]!
-    const stored = saved.get(OPERATION_STORAGE_KEY)
-    const transport = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => json({ operation_id: JSON.parse(String(init?.body)).operation_id, state: 'completed' }))
-    setTransport(transport)
-    const storage = vi.spyOn(localStorage, 'setItem').mockImplementation(() => { throw new Error('存储空间不足') })
-    await expect(write('/tasks/new-action/runs')).rejects.toMatchObject({ uncertain: false, details: { code: 'OPERATION_STORAGE_FAILED', message: expect.stringContaining('无法保留操作号，本次未提交') } })
-    expect(transport).not.toHaveBeenCalled()
-    expect(getPendingIds()).toEqual([originalId])
-    expect(getUnscopedIds()).toEqual([])
-    expect(saved.get(OPERATION_STORAGE_KEY)).toBe(stored)
-    storage.mockRestore()
-    await expect(write('/tasks/original/runs')).rejects.toMatchObject({ details: { operation_id: originalId } })
-    await expect(write('/tasks/new-action/runs')).resolves.toMatchObject({ state: 'completed' })
-    expect(transport).toHaveBeenCalledOnce()
-    expect(getPendingIds()).toEqual([originalId])
-  })
-  it('原号核查后清理存储失败仍保留待查与锁，存储恢复后再核查即可清理', async () => {
-    setTransport(async () => { throw new Error('响应丢失') })
-    await expect(write('/tasks')).rejects.toMatchObject({ uncertain: true })
-    const originalId = getPendingIds()[0]!
-    const stored = saved.get(OPERATION_STORAGE_KEY)
-    const transport = vi.fn(async () => json({ operation_id: originalId, state: 'completed' }))
-    setTransport(transport)
-    const storage = vi.spyOn(localStorage, 'setItem').mockImplementation(() => { throw new Error('存储不可用') })
-    await lookupOperation(originalId)
-    expect(getPendingIds()).toEqual([originalId])
-    expect(saved.get(OPERATION_STORAGE_KEY)).toBe(stored)
-    await expect(write('/tasks')).rejects.toMatchObject({ details: { code: 'ACTION_UNCONFIRMED', operation_id: originalId } })
-    expect(transport).toHaveBeenCalledOnce()
-    storage.mockRestore()
-    await lookupOperation(originalId)
-    expect(getPendingIds()).toEqual([])
-    expect(JSON.parse(saved.get(OPERATION_STORAGE_KEY)!)).toEqual({ version: 2, operations: [] })
-  })
-  it.each(['unknown', 'expired'])('%s 恢复只读查原号且不允许换号重做', async state => {
-    setTransport(async () => { throw new Error('断网') })
-    await expect(write('/tasks/task-test/runs')).rejects.toBeInstanceOf(ApiError)
-    const id = getPendingIds()[0]!
-    const transport = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => { expect(input).toBe('/api/v1/operations/' + id); expect(init?.method).toBe('GET'); return json({ operation_id: id, state }) })
-    setTransport(transport)
-    await lookupOperation(id)
-    expect(getPendingIds()).toEqual([id])
-    expect(transport).toHaveBeenCalledTimes(1)
-  })
-  it('重新读取有效收据后解除待核查状态但不会重提动作', async () => {
-    setTransport(async () => { throw new Error('断网') })
-    await expect(write('/tasks/task-test/runs')).rejects.toBeInstanceOf(ApiError)
-    const id = getPendingIds()[0]!
-    setTransport(async () => json({ operation_id: id, object_id: 'run-test', state: 'completed' }))
-    await expect(lookupOperation(id)).resolves.toMatchObject({ object_id: 'run-test' })
+    const receipt = await write('/tasks/task-test', { method: 'PATCH', revision: 3, body: { task: { name: '示例' } } })
+    expect(receipt.state).toBe('completed')
+    expect(posts).toBe(1)
     expect(getPendingIds()).toEqual([])
   })
-  it('字段校验错误保留服务端中文字段映射', async () => {
+  it('收据仍未知时保留原号，再次提交复用原号而不是换号', async () => {
+    const { posts, gets } = await failThenLookup('unknown', 404)
+    await expect(write('/connections', { body: { connection: { name: '仅测试', secrets: { bot_token: 'FAKE_SECRET' } } } })).rejects.toMatchObject({ details: { code: 'OPERATION_NOT_FOUND' } })
+    const original = getPendingIds()[0]!
+    expect(posts[0]?.id).toBe(original)
+    expect(gets).toEqual(['/api/v1/operations/' + original])
+    await expect(write('/connections', { body: { connection: { name: '仅测试', secrets: { bot_token: 'FAKE_SECRET' } } } })).rejects.toMatchObject({ details: { operation_id: original } })
+    expect(posts.map(item => item.id)).toEqual([original, original])
+    expect(gets).toHaveLength(3)
+    expect(gets.every(path => path === '/api/v1/operations/' + original)).toBe(true)
+    expect(getPendingIds()).toEqual([original])
+    expect(saved.get(OPERATION_STORAGE_KEY)).not.toContain('FAKE_SECRET')
+  })
+  it('不同连接内容使用不同操作号，不把新内容套到旧号上', async () => {
+    const { posts } = await failThenLookup('unknown', 404)
+    await expect(write('/connections', { body: { connection: { kind: 'telegram', name: '连接一', secrets: { bot_token: 'FAKE_A' } } } })).rejects.toMatchObject({ details: { code: 'OPERATION_NOT_FOUND' } })
+    const first = getPendingIds()[0]!
+    await expect(write('/connections', { body: { connection: { kind: 'telegram', name: '连接二', secrets: { bot_token: 'FAKE_B' } } } })).rejects.toMatchObject({ details: { code: 'OPERATION_NOT_FOUND' } })
+    expect(getPendingIds()).toHaveLength(2)
+    expect(getPendingIds()).toContain(first)
+    expect(new Set(posts.map(item => item.id)).size).toBe(2)
+  })
+  it.each(['unknown', 'expired', 'unconfirmed', 'pending', 'retired'])('收据状态 %s 时保留待确认，不重交原动作', async state => {
+    const { posts, gets } = await failThenLookup(state)
+    await expect(write('/tasks/task-test/runs')).rejects.toMatchObject({ details: { code: 'OPERATION_UNCONFIRMED' } })
+    expect(posts).toHaveLength(1)
+    expect(gets).toHaveLength(1)
+    expect(getPendingIds()).toHaveLength(1)
+  })
+  it('字段校验错误是确定失败，不查询也不保留待确认', async () => {
     setTransport(async () => json({ code: 'CONFIG_INVALID', message: '配置不合法', fields: { download_url: '请输入 HTTP 地址' } }, 422))
     await expect(write('/tasks')).rejects.toMatchObject({ details: { fields: { download_url: '请输入 HTTP 地址' } } })
     expect(getPendingIds()).toEqual([])
+  })
+  it('同一动作同时提交时沿用同一个操作号', async () => {
+    let release: (() => void) | undefined
+    const gate = new Promise<void>(resolve => { release = resolve })
+    const ids: string[] = []
+    setTransport(async (_input, init) => {
+      if ((init?.method || 'GET') === 'GET') return json({ code: 'operation_unknown' }, 404)
+      const body = JSON.parse(String(init?.body))
+      ids.push(body.operation_id)
+      await gate
+      return json({ operation_id: body.operation_id, state: 'accepted' }, 202)
+    })
+    const first = write('/tasks/task-concurrent/runs')
+    await vi.waitFor(() => { expect(ids).toHaveLength(1) })
+    const second = write('/tasks/task-concurrent/runs')
+    await vi.waitFor(() => { expect(ids).toHaveLength(2) })
+    release?.()
+    await expect(first).resolves.toMatchObject({ state: 'accepted' })
+    await expect(second).resolves.toMatchObject({ state: 'accepted' })
+    expect(new Set(ids).size).toBe(1)
+  })
+  it('无关动作不被待确认操作阻塞', async () => {
+    const { posts } = await failThenLookup('unknown', 404)
+    await expect(write('/tasks/task-one/runs')).rejects.toMatchObject({ details: { code: 'OPERATION_NOT_FOUND' } })
+    const pending = getPendingIds()[0]!
+    setTransport(async (_input, init) => {
+      const body = JSON.parse(String(init?.body))
+      return json({ operation_id: body.operation_id, state: 'accepted' }, 202)
+    })
+    await expect(write('/tasks/task-two/runs')).resolves.toMatchObject({ state: 'accepted' })
+    await expect(write('/settings', { method: 'PATCH', body: { timezone: 'UTC' } })).resolves.toMatchObject({ state: 'accepted' })
+    expect(getPendingIds()).toEqual([pending])
+    expect(posts).toHaveLength(1)
+  })
+  it('按任务范围筛选待确认操作，避免串到其他任务', async () => {
+    await failThenLookup('unknown', 404)
+    await expect(write('/tasks/task-1/runs')).rejects.toMatchObject({ details: { code: 'OPERATION_NOT_FOUND' } })
+    const id = getPendingIds()[0]!
+    expect(getPendingOperations('/api/v1/tasks/task-1')).toEqual([{ id, scope: { method: 'POST', path: '/api/v1/tasks/task-1/runs' } }])
+    expect(getPendingOperations('/api/v1/tasks/task-10')).toEqual([])
+    expect(getPendingOperations('/api/v1/tasks', true)).toEqual([])
+  })
+  it('刷新后只恢复带动作范围的待确认记录', () => {
+    const scoped = crypto.randomUUID()
+    const legacy = crypto.randomUUID()
+    saved.set(OPERATION_STORAGE_KEY, JSON.stringify({ version: 2, operations: [
+      { operation_id: scoped, scope: { method: 'PATCH', path: '/api/v1/tasks/task-1' } },
+      { operation_id: legacy },
+    ] }))
+    restoreOperationIds()
+    expect(getPendingIds()).toEqual([scoped])
+    expect(getPendingOperations('/api/v1/tasks/task-1')).toEqual([{ id: scoped, scope: { method: 'PATCH', path: '/api/v1/tasks/task-1' } }])
+  })
+  it('恢复带指纹的旧记录后，同动作读取收据确认并清理', async () => {
+    const body = { task: { name: '刷新恢复测试', config: { sample_size: 20 } } }
+    await failThenLookup('unknown', 404)
+    await expect(write('/tasks', { body })).rejects.toMatchObject({ details: { code: 'OPERATION_NOT_FOUND' } })
+    const original = getPendingIds()[0]!
+    vi.resetModules()
+    const restored = await import('../src/api/client')
+    restored.restoreOperationIds()
+    restored.setTransport(async (_input, init) => {
+      if ((init?.method || 'GET') === 'GET') return json({ operation_id: original, state: 'completed', object_id: 'task-created' })
+      throw new Error('不应再次提交')
+    })
+    await expect(restored.write('/tasks', { body })).resolves.toMatchObject({ object_id: 'task-created' })
+    expect(restored.getPendingIds()).toEqual([])
+  })
+  it('凭据动作只摘要非敏感范围，不持久化秘密', async () => {
+    const credential = '仅测试内存-' + crypto.randomUUID()
+    const digest = vi.spyOn(crypto.subtle, 'digest')
+    await failThenLookup('unknown', 404)
+    await expect(write('/connections', { revision: 7, body: { connection: { name: '不应持久化的显示名', secrets: { token: credential } } } })).rejects.toMatchObject({ details: { code: 'OPERATION_NOT_FOUND' } })
+    expect(JSON.parse(new TextDecoder().decode(digest.mock.calls[0]![1] as ArrayBuffer))).toEqual({ path: '/api/v1/connections', method: 'POST', body: { connection: { name: '不应持久化的显示名', secret_keys: ['token'] } } })
+    expect(saved.get(OPERATION_STORAGE_KEY)).not.toContain(credential)
+    expect(saved.get(OPERATION_STORAGE_KEY)).not.toContain('不应持久化的显示名')
   })
   it('401 调用隐藏会话处理，不重交请求', async () => {
     const unauthorized = vi.fn()
@@ -226,99 +234,12 @@ describe('同源契约与操作恢复', () => {
     await expect(request('/tasks')).rejects.toMatchObject({ status: 401 })
     expect(unauthorized).toHaveBeenCalledOnce()
   })
-  it('仅恢复非敏感且符合 UUID 格式的本地标识', () => {
-    const id = crypto.randomUUID()
-    saved.set(OPERATION_STORAGE_KEY, JSON.stringify([id, { secret: 'forbidden' }, 'password']))
-    restoreOperationIds()
-    expect(getPendingIds()).toEqual([id])
-  })
-  it('响应丢失后刷新恢复动作锁，无自动请求且只拦截同一指纹', async () => {
-    const body = { task: { name: '刷新恢复测试', config: { sample_size: 20 } } }
-    setTransport(async () => { throw new Error('响应丢失') })
-    await expect(write('/tasks', { body })).rejects.toMatchObject({ uncertain: true })
-    const originalId = getPendingIds()[0]!
-    vi.resetModules()
-    const restored = await import('../src/api/client')
-    const transport = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => json({ operation_id: JSON.parse(String(init?.body)).operation_id, state: 'accepted' }, 202))
-    restored.setTransport(transport)
-    restored.restoreOperationIds()
-    expect(transport).not.toHaveBeenCalled()
-    expect(restored.getPendingIds()).toEqual([originalId])
-    expect(restored.getUnscopedIds()).toEqual([])
-    const randomUUID = vi.spyOn(crypto, 'randomUUID')
-    await expect(restored.write('/tasks', { body: { task: { config: { sample_size: 20 }, name: '刷新恢复测试' } } })).rejects.toMatchObject({ details: { code: 'ACTION_UNCONFIRMED', operation_id: originalId } })
-    expect(randomUUID).not.toHaveBeenCalled()
-    expect(transport).not.toHaveBeenCalled()
-    await restored.write('/tasks', { body: { task: { ...body.task, name: '无关任务' } } })
-    await restored.write('/settings', { method: 'PATCH', body: { timezone: 'UTC' } })
-    expect(transport).toHaveBeenCalledTimes(2)
-    expect(restored.getPendingIds()).toEqual([originalId])
-  })
-  it.each(['/connections', '/connections/connection-test', '/session'])('凭据动作 %s 只摘要非敏感范围，变更秘密或版本也不能绕过恢复锁', async path => {
-    const credential = '仅测试内存-' + crypto.randomUUID()
-    const digest = vi.spyOn(crypto.subtle, 'digest')
-    setTransport(async () => { throw new Error('响应丢失') })
-    await expect(write(path, { revision: 7, body: { connection: { name: '不应持久化的显示名', secrets: { token: credential } } } })).rejects.toMatchObject({ uncertain: true })
-    const originalId = getPendingIds()[0]!
-    expect(JSON.parse(new TextDecoder().decode(digest.mock.calls[0]![1] as ArrayBuffer))).toEqual({ path: '/api/v1' + path, method: 'POST' })
-    expect(saved.get(OPERATION_STORAGE_KEY)).not.toContain(credential)
-    expect(saved.get(OPERATION_STORAGE_KEY)).not.toContain('不应持久化的显示名')
-    vi.resetModules()
-    const restored = await import('../src/api/client')
-    const transport = vi.fn()
-    restored.setTransport(transport)
-    restored.restoreOperationIds()
-    await expect(restored.write(path, { revision: 8, body: { connection: { secrets: { token: credential + '-修改' } } } })).rejects.toMatchObject({ details: { operation_id: originalId, code: 'ACTION_UNCONFIRMED' } })
-    expect(transport).not.toHaveBeenCalled()
-    for (const call of digest.mock.calls) expect(JSON.parse(new TextDecoder().decode(call[1] as ArrayBuffer))).toEqual({ path: '/api/v1' + path, method: 'POST' })
-  })
-  it.each(['unknown', 'expired', 'pending', 'unconfirmed', 'not_found', 'mismatch'])('刷新后原号核查 %s 仍保留动作锁，不发新请求', async state => {
-    setTransport(async () => { throw new Error('响应丢失') })
-    await expect(write('/tasks', { body: { task: { name: '待核查' } } })).rejects.toBeInstanceOf(ApiError)
-    const originalId = getPendingIds()[0]!
-    vi.resetModules()
-    const restored = await import('../src/api/client')
-    restored.restoreOperationIds()
-    const transport = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
-      expect(init?.method).toBe('GET')
-      return state === 'not_found' ? json({ code: 'NOT_FOUND' }, 404) : json({ operation_id: state === 'mismatch' ? crypto.randomUUID() : originalId, state })
-    })
-    restored.setTransport(transport)
-    try { await restored.lookupOperation(originalId) } catch {}
-    await expect(restored.write('/tasks', { body: { task: { name: '待核查' } } })).rejects.toMatchObject({ details: { operation_id: originalId } })
-    expect(restored.getPendingIds()).toEqual([originalId])
-    expect(transport).toHaveBeenCalledOnce()
-  })
-  it('刷新后的有效原号收据清理持久化锁，只有后续明确点击才可新建', async () => {
-    setTransport(async () => { throw new Error('响应丢失') })
-    await expect(write('/tasks')).rejects.toBeInstanceOf(ApiError)
-    const originalId = getPendingIds()[0]!
-    vi.resetModules()
-    const restored = await import('../src/api/client')
-    restored.restoreOperationIds()
-    const transport = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => json({ operation_id: init?.method === 'GET' ? originalId : JSON.parse(String(init?.body)).operation_id, state: 'completed' }))
-    restored.setTransport(transport)
-    await restored.lookupOperation(originalId)
-    expect(restored.getPendingIds()).toEqual([])
-    expect(JSON.parse(saved.get(OPERATION_STORAGE_KEY)!)).toEqual({ version: 2, operations: [] })
-    expect(transport).toHaveBeenCalledOnce()
-    await restored.write('/tasks')
-    expect(transport).toHaveBeenCalledTimes(2)
-  })
-  it.each(['legacy', 'invalid_fingerprint'])('%s 缺少可靠动作范围时保守拦住新建，允许其他对象操作', async format => {
-    const originalId = crypto.randomUUID()
-    saved.set(OPERATION_STORAGE_KEY, JSON.stringify(format === 'legacy' ? [originalId] : { version: 2, operations: [{ operation_id: originalId, fingerprint: '不能信任的标识' }] }))
-    restoreOperationIds()
-    expect(getUnscopedIds()).toEqual([originalId])
-    const transport = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => json({ operation_id: init?.method === 'GET' ? originalId : JSON.parse(String(init?.body)).operation_id, state: 'completed' }))
-    setTransport(transport)
-    for (const path of ['/tasks', '/connections']) await expect(write(path)).rejects.toMatchObject({ details: { operation_id: originalId, code: 'ACTION_UNCONFIRMED' } })
-    expect(transport).not.toHaveBeenCalled()
-    await write('/runs/known-run/cancel')
-    await write('/settings', { method: 'PATCH', body: { timezone: 'UTC' } })
-    expect(transport).toHaveBeenCalledTimes(2)
-    await lookupOperation(originalId)
-    expect(getUnscopedIds()).toEqual([])
-    await expect(write('/tasks')).resolves.toMatchObject({ state: 'completed' })
+  it('有效收据查询后清理待确认，不会重提动作', async () => {
+    await failThenLookup('unknown', 404)
+    await expect(write('/tasks/task-test/runs')).rejects.toBeInstanceOf(ApiError)
+    const id = getPendingIds()[0]!
+    setTransport(async () => json({ operation_id: id, object_id: 'run-test', state: 'completed' }))
+    await expect(lookupOperation(id)).resolves.toMatchObject({ object_id: 'run-test' })
+    expect(getPendingIds()).toEqual([])
   })
 })

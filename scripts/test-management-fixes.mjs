@@ -87,18 +87,25 @@ try {
   })
   await fillTask('未决创建操作恢复复验')
   await page.getByRole('button', {name: '保存策略', exact: true}).click()
-  await page.getByRole('alert').filter({hasText: /未能确认|未确认/}).first().waitFor()
+  await page.getByRole('heading', {name: '未决创建操作恢复复验', exact: true}).waitFor()
   const originalId = submitted[0].operation_id
   const before = await page.evaluate(async () => (await (await fetch('/api/v1/tasks')).json()).length)
   assert.equal(before, 1)
-  await page.reload()
-  await fillTask('未决创建操作恢复复验')
-  await page.getByRole('button', {name: '保存策略', exact: true}).click()
-  await page.getByRole('alert').filter({hasText: /原操作|只读|未确认/}).first().waitFor()
-  const after = await page.evaluate(async () => (await (await fetch('/api/v1/tasks')).json()).length)
-  assert.equal(after, 1, '刷新后的同一未决创建操作不能换号重建')
-  assert.equal(submitted.length, 1, '第二次点击不得发送新的创建请求')
-  checks.push({case: 'F-03', status: 'passed', tasksBefore: before, tasksAfterReloadClick: after, posts: submitted.length})
+  assert.equal(submitted.length, 1, '响应丢失后不得换号重交')
+  const lostReceipt = await page.evaluate(async id => { const response = await fetch('/api/v1/operations/' + id); return {status: response.status, body: await response.json()} }, originalId)
+  assert.equal(lostReceipt.status, 200)
+  assert.equal(lostReceipt.body.operation_id, originalId)
+  assert(await page.evaluate(() => JSON.parse(localStorage.getItem('cloudflarest.pending-operation-ids')).operations.length === 0), '确认后应清理待查记录')
+  assert.equal(await page.locator('.topbar-tools').getByRole('button').count(), 0, '顶栏只保留外观控制')
+  checks.push({case: 'F-03', status: 'passed', tasksBefore: before, tasksAfterLostResponse: before, posts: submitted.length, autoLookup: true})
+
+  await page.goto(origin + '/#/settings')
+  await page.getByLabel('统一系统时区').fill('UTC')
+  await page.getByRole('button', {name: '保存系统设置', exact: true}).click()
+  await page.getByRole('status').filter({hasText: '已收到操作收据'}).waitFor()
+  const timezone = await page.evaluate(async () => (await (await fetch('/api/v1/settings')).json()).timezone)
+  assert.equal(timezone, 'UTC', '未决创建操作不应阻断无关设置保存')
+  checks.push({case: 'C01-unrelated-action', status: 'passed'})
 
   async function authenticatedWrite(path, method, body) {
     return page.evaluate(async ({path, method, body}) => {
@@ -109,21 +116,6 @@ try {
       return result
     }, {path, method, body})
   }
-  await page.goto(origin + '/#/settings')
-  await page.getByLabel('统一系统时区').fill('UTC')
-  await page.getByRole('button', {name: '保存系统设置', exact: true}).click()
-  await page.getByRole('status').filter({hasText: '已收到操作收据'}).waitFor()
-  const timezone = await page.evaluate(async () => (await (await fetch('/api/v1/settings')).json()).timezone)
-  assert.equal(timezone, 'UTC', '未决创建操作不应阻断无关设置保存')
-  await page.getByRole('button', {name: /操作核查/}).click()
-  const tracker = page.getByRole('dialog', {name: '原操作号只读核查'})
-  await tracker.locator('li').filter({hasText: originalId}).getByRole('button', {name: '只读查询', exact: true}).click()
-  await tracker.getByText('关联对象：', {exact: false}).waitFor()
-  assert((await tracker.innerText()).includes(originalId))
-  assert.equal(submitted.length, 1, '查询收据不应产生创建动作')
-  await page.keyboard.press('Escape')
-  checks.push({case: 'C01-unrelated-action-and-readback', status: 'passed'})
-
   const defaults = await page.evaluate(async () => (await (await fetch('/api/v1/defaults')).json()).config)
   const task = {name: 'UTC计划显示复验', config: {...defaults, sources: [{kind: 'ip', value: '127.0.0.1'}], probe_mode: 'tcp', download_enabled: false}, schedule: {enabled: true, kind: 'cron', expression: '0 0 1 1 *'}, dns_auto: false, targets: [], notifications: {telegram: {enabled: false, connection_id: ''}, wecom: {enabled: false, connection_id: ''}}}
   const receipt = await authenticatedWrite('/api/v1/tasks', 'POST', {task})

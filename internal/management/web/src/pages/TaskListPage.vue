@@ -13,6 +13,7 @@ import StatusBadge from '../components/StatusBadge.vue'
 import AppIcon from '../components/AppIcon.vue'
 import PageHeader from '../components/PageHeader.vue'
 import SurfacePanel from '../components/SurfacePanel.vue'
+import PendingOperationNotice from '../components/PendingOperationNotice.vue'
 const route = useRoute(), router = useRouter()
 const search = ref('')
 const archived = computed(() => route.query.view === 'archived')
@@ -23,6 +24,7 @@ const current = (id: string) => [resource.data.value?.queue.current, ...(resourc
 <template>
   <PageHeader title="优选策略" desc="设置定时，直接查看每次优选的 IP 列表。"><RouterLink v-if="!archived" to="/tasks/new" class="button primary"><AppIcon name="plus" />新建策略</RouterLink></PageHeader>
   <ResourceState :loading="resource.loading.value" :error="resource.error.value" :updated-at="resource.updatedAt.value" @retry="resource.reload" />
+  <PendingOperationNotice scope="/api/v1/tasks" exact label="优选策略" @resolved="resource.reload" />
   <SurfacePanel :title="archived ? '已归档策略' : '我的策略'" :meta="resource.data.value ? shown.length + ' 个' : '等待读取'" :aria-busy="resource.loading.value || resource.refreshing.value">
     <template #tools><button class="quiet-button" :disabled="resource.loading.value" @click="resource.reload"><AppIcon name="refresh" :size="16" />刷新</button></template>
     <div class="toolbar task-toolbar"><label class="search-control"><span class="sr-only">查找名称／ID</span><AppIcon name="search" :size="17" /><input v-model="search" type="search" placeholder="搜索策略名称或 ID" /></label><button class="quiet-button" @click="router.replace({query: archived ? {} : {view: 'archived'}})">{{ archived ? '返回我的策略' : '已归档' }}</button></div>

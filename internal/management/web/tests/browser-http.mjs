@@ -47,27 +47,42 @@ try {
       const mock = await import('/src/api/mock.ts')
       await client.write('/settings', { method: 'PATCH', body: { timezone: 'Asia/Shanghai', history_days: 30 } })
       let writes = 0
+      const ids = []
+      const unknown = () => new Response(JSON.stringify({ code: 'operation_unknown', message: '查不到原号' }), { status: 404, headers: { 'Content-Type': 'application/json' } })
       client.setTransport(async (input, init) => {
-        const response = await mock.mockFetch(input, init)
-        if (input === '/api/v1/connections' && init?.method === 'POST') { writes++; throw new Error('仅测试响应丢失') }
-        return response
+        if (String(input).startsWith('/api/v1/operations/')) return unknown()
+        if (input === '/api/v1/connections' && init?.method === 'POST') {
+          writes++
+          ids.push(JSON.parse(String(init.body)).operation_id)
+          throw new Error('仅测试响应丢失')
+        }
+        return mock.mockFetch(input, init)
       })
       let originalId
-      try { await client.write('/connections', { body: { connection: { kind: 'telegram', name: '仅测试原号核查', secrets: { bot_token: 'FAKE_HTTP_TOKEN', chat_id: 'FAKE_HTTP_CHAT' } } } }) }
-      catch (error) { originalId = error.details?.operation_id }
-      let code
-      try { await client.write('/connections', { body: { connection: { name: '禁止重复', secrets: { bot_token: 'FAKE_CHANGED_TOKEN' } } } }) }
-      catch (error) { code = error.details?.code }
+      let firstCode
+      const body = { connection: { kind: 'telegram', name: '仅测试原号查询', secrets: { bot_token: 'FAKE_HTTP_TOKEN', chat_id: 'FAKE_HTTP_CHAT' } } }
+      try { await client.write('/connections', { body }) }
+      catch (error) { originalId = error.details?.operation_id; firstCode = error.details?.code }
+      let secondCode
+      try { await client.write('/connections', { body }) }
+      catch (error) { secondCode = error.details?.code }
       const stored = localStorage.getItem(client.OPERATION_STORAGE_KEY) || ''
+      const pending = client.getPendingIds()
+      client.setTransport(async input => String(input) === '/api/v1/operations/' + originalId
+        ? new Response(JSON.stringify({ operation_id: originalId, state: 'completed' }), { headers: { 'Content-Type': 'application/json' } })
+        : new Response(JSON.stringify({ code: 'NOT_FOUND' }), { status: 404, headers: { 'Content-Type': 'application/json' } }))
       await client.lookupOperation(originalId)
-      return { writes, originalId, code, leaked: stored.includes('FAKE_HTTP') || stored.includes('FAKE_CHANGED'), pending: client.getPendingIds() }
+      return { writes, ids, originalId, firstCode, secondCode, leaked: stored.includes('FAKE_HTTP') || stored.includes('FAKE_CHANGED'), pending, afterLookup: client.getPendingIds() }
     })
-    assert.equal(verification.writes, 1)
+    assert.equal(verification.writes, 2)
     assert.match(verification.originalId, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
-    assert.equal(verification.code, 'ACTION_UNCONFIRMED')
+    assert.deepEqual(verification.ids, [verification.originalId, verification.originalId])
+    assert.equal(verification.firstCode, 'OPERATION_NOT_FOUND')
+    assert.equal(verification.secondCode, 'OPERATION_NOT_FOUND')
     assert.equal(verification.leaked, false)
-    assert.deepEqual(verification.pending, [])
-    console.log((origin === localOrigin ? '本机 HTTP' : '非本机 IP HTTP') + '：连接保存、配置写入、防重复提交和原号核查通过；仅使用模拟凭据')
+    assert.deepEqual(verification.pending, [verification.originalId])
+    assert.deepEqual(verification.afterLookup, [])
+    console.log((origin === localOrigin ? '本机 HTTP' : '非本机 IP HTTP') + '：连接保存、配置写入、同号重试和原号查询通过；仅使用模拟凭据')
     await context.close()
   }
 } finally {

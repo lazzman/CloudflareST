@@ -30,7 +30,7 @@
 
 - `internal/safedata/url.go`、`internal/optimizer/config.go`、`internal/integrations/redact.go`。
 - `internal/management/private_history.go`、`operation_recovery.go`，以及既有摘要、运行保存、API和启动接线。
-- `internal/management/web/src/api/client.ts`、`components/OperationTracker.vue`、`lib/safeText.ts`、执行详情与配置提示。
+- `internal/management/web/src/api/client.ts`、旧顶栏操作跟踪组件（已于 2026-11-19 移除）、`lib/safeText.ts`、执行详情与配置提示。
 - 正式回归：`internal/management/rc_regression_test.go`、`rc_private_history_test.go`、`rc_recovery_test.go`、`internal/safedata/url_test.go`；前端 `tests/recovery.test.ts`、`safeText.test.ts`。
 - 真实同源专项：`scripts/test-management-rc-fixes.mjs`。
 
@@ -44,7 +44,7 @@
 6. 核查响应丢失时可以从原号或核查号只读找回。核查请求本身未抵达时，只有用户再次明确确认才复用同一个核查号，不自动重交业务、不另造核查号。
 7. 读取已消费的许可不会把它重新装回可用状态。新的业务尝试如果再次未知，继续保留其新操作号并沿同一核查流程处理。
 
-测试覆盖同浏览器刷新、旧格式待核查条目、存储写失败、旧收据过期和服务重启。这里的单次许可不承诺第三方远端恰好一次；原DNS／通知的未确认、目标保护和重试风险规则不变。
+测试覆盖同浏览器刷新、旧格式待确认条目、存储写失败、旧收据过期和服务重启。这里的单次许可不承诺第三方远端恰好一次；原DNS／通知的未确认、目标保护和重试风险规则不变。
 
 ## 4. 升级与敏感数据处理
 
@@ -103,3 +103,5 @@ Playwright可通过 `PLAYWRIGHT_EXECUTABLE_PATH` 指定测试浏览器，但不�
 - 下一阶段可安排受控部署与授权测试对象联调；若发现新反例应继续按证据修复，不改变既定外部操作保护。
 
 没有真实DNS修改或消息发送，没有公网测速，没有Git提交／推送；临时测试服务、容器及卷已清理。
+
+> 2026-11-19 后续变更：CR-003 删除顶栏全局待确认入口与人工恢复许可界面，改为超时自动读取原号收据、仍未确认只在对应页面提示；后端幂等、收据与恢复接口保留。本报告保留当时验证记录，当前需求口径见 [v1.3 操作结果自动确认](ip-optimization-prd-v1.3-operation-result-auto-lookup.md)。

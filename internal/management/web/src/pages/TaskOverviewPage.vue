@@ -10,6 +10,7 @@ import TaskActions from '../components/TaskActions.vue'
 import ResourceState from '../components/ResourceState.vue'
 import TargetFacts from '../components/TargetFacts.vue'
 import ProtectionControl from '../components/ProtectionControl.vue'
+import PendingOperationNotice from '../components/PendingOperationNotice.vue'
 const route = useRoute()
 const id = String(route.params.taskId)
 const resource = useResource(async () => ({ task: await request<Task>('/tasks/' + segment(id)), queue: await request<Queue>('/queue') }), { poll: () => true })
@@ -20,6 +21,7 @@ const currentRun = computed(() => [resource.data.value?.queue.current, ...(resou
   <RouterLink to="/tasks" class="back-link">← 优选任务</RouterLink>
   <header class="page-heading"><div><h1 tabindex="-1">{{ task?.name || '任务概览' }}</h1><p class="page-meta"><code>{{ id }}</code> · 配置版本 {{ task?.revision ?? '未知' }} · {{ task?.archived ? '已归档' : '活跃' }}</p></div></header>
   <ResourceState :loading="resource.loading.value" :error="resource.error.value" :updated-at="resource.updatedAt.value" @retry="resource.reload" />
+  <PendingOperationNotice :scope="'/api/v1/tasks/' + id" label="此任务" @resolved="resource.reload" />
   <p v-if="task?.configuration_issue" class="notice danger" role="alert">{{ task.configuration_issue }}；敏感地址已移除，定时暂停。请重新填写安全地址并保存；不会自动重跑或恢复计划。</p>
   <template v-if="task">
     <TaskActions :task="task" :current-run="currentRun" @changed="resource.reload" />

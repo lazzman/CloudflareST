@@ -14,6 +14,7 @@ import StatusBadge from '../components/StatusBadge.vue'
 import PagerControl from '../components/PagerControl.vue'
 import ModalDialog from '../components/ModalDialog.vue'
 import PageHeader from '../components/PageHeader.vue'
+import PendingOperationNotice from '../components/PendingOperationNotice.vue'
 const route = useRoute(), router = useRouter()
 const taskId = String(route.params.taskId), base = '/tasks/' + segment(taskId)
 const historyPage = ref(1), latestId = ref('')
@@ -44,6 +45,7 @@ async function stop() { if (run.value && await mutation.submit('/runs/' + segmen
   <RouterLink to="/tasks" class="back-link">← 优选策略</RouterLink>
   <PageHeader :title="taskResource.data.value?.name || 'IP 结果'" desc="IP 优选结果"><RouterLink :to="base + '/edit'" class="button">编辑策略</RouterLink></PageHeader>
   <ResourceState :loading="taskResource.loading.value || history.loading.value || resource.loading.value" :error="taskResource.error.value || history.error.value || resource.error.value" @retry="taskResource.reload(); history.reload(); resource.reload()" />
+  <PendingOperationNotice v-if="selectedId" :scope="'/api/v1/runs/' + selectedId" label="本次执行" @resolved="resource.reload" />
   <div v-if="history.data.value" class="results-toolbar"><label>运行时间<select aria-label="运行时间" :value="requestedRun" @change="selectRun"><option value="">最新一次{{ historyPage > 1 ? '（已读取）' : '' }}</option><option v-if="requestedRun && !history.data.value.items.some(item => item.id === requestedRun)" :value="requestedRun">{{ run ? date(run.queued_at) : '当前所选运行' }}</option><option v-for="item in history.data.value.items" :key="item.id" :value="item.id">{{ date(item.queued_at) }} · {{ item.status === 'completed' ? '已完成' : item.status === 'queued' ? '排队中' : item.status === 'running' ? '运行中' : item.status === 'failed' ? '失败' : item.status === 'no_results' ? '无合格结果' : item.status === 'cancelled' ? '已取消' : '已中断' }}</option></select></label><div class="history-pages" v-if="history.data.value.total > 20"><button :disabled="historyPage <= 1" @click="historyPage--">较新记录</button><span class="small">{{ historyPage }} / {{ Math.ceil(history.data.value.total / 20) }}</span><button :disabled="historyPage * 20 >= history.data.value.total" @click="historyPage++">更早记录</button></div><div v-if="run" class="result-state"><StatusBadge :value="run.status" /><span class="small">{{ date(run.queued_at) }}</span><button v-if="active(run)" @click="stopping = true">停止本次</button></div></div>
   <p v-if="runError" role="alert" class="notice danger">{{ runError }}</p>
   <p v-if="run && active(run)" class="notice">{{ run.status === 'queued' ? '等待运行，完成后将在这里显示 IP 结果。' : '正在运行；结果更新后会自动显示，已产生的数据不代表最终排名。' }}</p>

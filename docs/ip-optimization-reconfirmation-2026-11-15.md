@@ -44,7 +44,7 @@
 ### RC-04：未决创建操作缺少人工处理后的恢复出口
 
 - 优先级：P2；安全恢复流程未闭环。
-- 位置：`internal/management/web/src/api/client.ts:109`、`internal/management/web/src/api/client.ts:120`、`internal/management/web/src/api/client.ts:144`、`internal/management/web/src/components/OperationTracker.vue:24`。
+- 位置：`internal/management/web/src/api/client.ts:109`、`internal/management/web/src/api/client.ts:120`、`internal/management/web/src/api/client.ts:144`、旧顶栏操作跟踪组件（已于 2026-11-19 移除）:24。
 - 事实：连接新建发生网络结果未知后，锁按 POST /connections 范围保存；查询原号返回 operation_unknown 或过期，锁保持不变。即使用户拟建另一个连接，仍被 ACTION_UNCONFIRMED 拒绝。当前核查界面只有关闭、只读查询和按号查询，没有“核对后明确发起关联新尝试”的流程。
 - 实测：首次 NETWORK_ERROR → 原号 operation_unknown → 第二次（名称不同）ACTION_UNCONFIRMED；实际模拟 POST 调用仅 1 次，证明没有盲重发，但也没有正常产品入口恢复。
 - 依据：R3 C-01 技术 `9.2／UX `11.2 同时规定“不自动换号”和“人工明确的新尝试保留原关联”。这里缺的是人工出口，不是要求 unknown／404 自动解锁。

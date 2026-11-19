@@ -13,6 +13,7 @@ import StatusBadge from '../components/StatusBadge.vue'
 import MutationState from '../components/MutationState.vue'
 import ModalDialog from '../components/ModalDialog.vue'
 import PagerControl from '../components/PagerControl.vue'
+import PendingOperationNotice from '../components/PendingOperationNotice.vue'
 const route = useRoute()
 const router = useRouter()
 const taskId = String(route.params.taskId)
@@ -51,6 +52,7 @@ async function restore(run: Run) { if (await mutation.submit('/runs/' + segment(
   <RouterLink :to="'/tasks/' + taskId" class="back-link">← {{ taskResource.data.value?.name || taskId }} · 任务概览</RouterLink>
   <header class="page-heading"><div><h1 tabindex="-1">{{ recycled ? '已删除运行记录' : '运行记录' }}</h1><p class="page-meta"><code>{{ taskId }}</code> · {{ recycled ? '回收站 · 恢复不重跑、不重推送' : '仅当前任务 · 入队时间范围' }}</p></div><RouterLink v-if="!recycled" :to="'/tasks/' + taskId + '/recycle-bin'">回收站</RouterLink><RouterLink v-else :to="'/tasks/' + taskId + '/runs'">返回运行记录</RouterLink></header>
   <ResourceState :loading="resource.loading.value" :error="resource.error.value" :updated-at="resource.updatedAt.value" @retry="resource.reload" />
+  <PendingOperationNotice scope="/api/v1/runs" label="运行记录" @resolved="resource.reload" />
   <form v-if="!recycled" class="filter-panel" @submit.prevent="applyFilters"><p id="filter-timezone" class="small muted">时间显示与筛选均按系统时区 {{ systemTimezone || '读取中' }}。夏令时跳变或重复时刻请调整筛选边界。</p><div class="form-grid"><label>入队开始时间<input v-model="filters.start" type="datetime-local" :disabled="!systemTimezone" aria-describedby="filter-timezone" /></label><label>入队结束时间<input v-model="filters.end" type="datetime-local" :disabled="!systemTimezone" aria-describedby="filter-timezone" /></label><label>主状态<select v-model="filters.status" aria-label="主状态"><option value="">所有状态</option><option v-for="value in RUN_STATUSES" :key="value" :value="value">{{ label(value) }}</option></select></label><label>触发来源<select v-model="filters.trigger"><option value="">所有触发</option><option value="manual">手动</option><option value="scheduled">定时</option></select></label><label>DNS 状态<select v-model="filters.dns_state"><option value="">所有</option><option v-for="value in ['success','failed','skipped','unconfirmed']" :key="value" :value="value">{{ label(value) }}</option></select></label><label>通知状态<select v-model="filters.notification_state"><option value="">所有</option><option v-for="value in ['success','failed','skipped','unconfirmed']" :key="value" :value="value">{{ label(value) }}</option></select></label></div><div class="actions"><button class="primary">应用筛选</button><button type="button" @click="filters = { start: '', end: '', status: '', trigger: '', dns_state: '', notification_state: '' }; void applyFilters()">清除筛选</button></div></form>
   <MutationState :error="mutation.error.value" :receipt="mutation.receipt.value" />
   <p v-if="pageNotice" class="notice" role="status">{{ pageNotice }}</p>
