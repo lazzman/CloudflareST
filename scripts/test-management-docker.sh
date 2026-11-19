@@ -33,6 +33,7 @@ healthy() {
 healthy
 docker exec "$container" sh -eu -c '
   test "$(id -u)" = 10001
+  test "$(stat -c %a /var/lib/cfst)" = 700
   test "$(stat -c %a /tmp/cfst)" = 700
   test "$(stat -c %a /tmp/cfst/admin-password)" = 600
   test "$(stat -c %a /var/lib/cfst/master.key)" = 600
@@ -50,4 +51,19 @@ password_after=$(docker exec "$container" sha256sum /tmp/cfst/admin-password)
 key_after=$(docker exec "$container" sha256sum /var/lib/cfst/master.key)
 test "$password_before" != "$password_after"
 test "$key_before" = "$key_after"
-echo '通过：断网容器、非root、只读根文件系统、嵌入静态页面、未认证拦截、随机密码权限与重启轮换、卷主密钥保留。'
+
+docker stop "$container" >/dev/null
+docker run --rm --network none --read-only --user 0:0 \
+  --cap-drop ALL --cap-add CHOWN --security-opt no-new-privileges:true \
+  --mount "type=volume,src=$volume,dst=/var/lib/cfst" --entrypoint sh "$image" \
+  -eu -c 'chown 0:10001 /var/lib/cfst && chmod 0770 /var/lib/cfst'
+docker start "$container" >/dev/null
+healthy
+docker exec "$container" sh -eu -c '
+  test "$(id -u)" = 10001
+  test "$(stat -c %u:%g:%a /var/lib/cfst)" = 0:10001:770
+  test "$(stat -c %a /var/lib/cfst/master.key)" = 600
+  test "$(stat -c %a /var/lib/cfst/management.sqlite)" = 600
+'
+test "$(docker exec "$container" sha256sum /var/lib/cfst/master.key)" = "$key_before"
+echo '通过：非 root 断网启动、只读根文件系统、嵌入静态页面、认证拦截、密码轮换、已有可写目录权限与卷主密钥保留。'

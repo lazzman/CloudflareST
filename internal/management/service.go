@@ -76,15 +76,12 @@ func Open(config Config) (_ *Service, failure error) {
 		return nil, errors.New("必须指定管理数据目录")
 	}
 	if err := os.MkdirAll(config.DataDir, 0700); err != nil {
-		return nil, err
-	}
-	if err := os.Chmod(config.DataDir, 0700); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("无法准备管理数据目录 %q：%w", config.DataDir, err)
 	}
 	lock := flock.New(filepath.Join(config.DataDir, "management.lock"))
 	locked, err := lock.TryLock()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("无法锁定管理数据目录 %q（需要写入权限和文件锁支持）：%w", config.DataDir, err)
 	}
 	if !locked {
 		return nil, errors.New("该数据卷已有管理实例持有执行权，请停止旧实例后重试")

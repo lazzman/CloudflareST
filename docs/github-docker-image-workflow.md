@@ -78,6 +78,7 @@ docker pull ghcr.io/lazzman/cloudflarest:v1.2.3
 
 - 未配置 `CFST_ADMIN_PASSWORD` 时，每次启动生成随机密码，可在 Docker 主机执行 `docker compose exec -u 10001 cfst-web cat /tmp/cfst/admin-password` 读取；重启后须重新读取。自定义密码由容器管理平台安全注入，不提交到仓库。
 - 命名卷 `cfst-data` 保存数据库及 `master.key`，备份必须保留两者。升级前停止服务并完整备份；回退应使用与旧版本匹配的备份，不用旧程序打开新数据库，也不要多个实例共享数据卷。
+- 绑定挂载会保留宿主机目录的属主和权限，但容器用户仍需实际读写权限；详见[绑定挂载权限](ip-optimization-management-deployment.md#绑定挂载权限)。
 - 远程访问使用受信任的 HTTPS 反向代理并设置 `CFST_SECURE_COOKIE=true`。只有确认代理会清理来访转发头后，才通过 `CFST_TRUSTED_PROXIES` 配置可信代理的容器 CIDR。
 - `NET_RAW` 用于 ICMP 探测。若部署环境不支持，应在界面切换 TCPING，不额外扩大容器权限。
 

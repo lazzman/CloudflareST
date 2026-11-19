@@ -38,6 +38,50 @@ func TestContractForwardedSourceOnlyTrustsConfiguredChain(t *testing.T) {
 	}
 }
 
+func TestContractDataDirectoryPermissions(test *testing.T) {
+	if runtime.GOOS == "windows" {
+		test.Skip("Windows 不使用 POSIX 权限位")
+	}
+	for _, scenario := range []struct {
+		name     string
+		existing bool
+		mode     os.FileMode
+	}{
+		{"保留已有目录权限", true, 0770},
+		{"新建私有目录", false, 0700},
+	} {
+		test.Run(scenario.name, func(test *testing.T) {
+			dataDir := filepath.Join(test.TempDir(), "data")
+			if scenario.existing {
+				if err := os.Mkdir(dataDir, scenario.mode); err != nil {
+					test.Fatal(err)
+				}
+				if err := os.Chmod(dataDir, scenario.mode); err != nil {
+					test.Fatal(err)
+				}
+			}
+			service, err := Open(Config{DataDir: dataDir, Password: acceptancePassword, Engine: &acceptanceEngine{}, Provider: newAcceptanceProvider()})
+			if err != nil {
+				test.Fatal(err)
+			}
+			test.Cleanup(func() {
+				if err := service.Close(); err != nil {
+					test.Error(err)
+				}
+			})
+			for filename, mode := range map[string]os.FileMode{dataDir: scenario.mode, filepath.Join(dataDir, "master.key"): 0600, filepath.Join(dataDir, "management.sqlite"): 0600} {
+				info, err := os.Stat(filename)
+				if err != nil {
+					test.Fatal(err)
+				}
+				if info.Mode().Perm() != mode {
+					test.Errorf("%s 权限为 %04o，期望 %04o", filename, info.Mode().Perm(), mode)
+				}
+			}
+		})
+	}
+}
+
 func TestContractRandomPasswordIsEphemeralAndRotates(t *testing.T) {
 	dir := t.TempDir()
 	runtimeDir := filepath.Join(t.TempDir(), "runtime")

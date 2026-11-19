@@ -16,6 +16,7 @@ RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/cfst-web ./cmd/cfs
 FROM alpine:3.22
 RUN addgroup -S -g 10001 cfst && adduser -S -D -H -u 10001 -G cfst cfst \
     && mkdir -p /var/lib/cfst /tmp \
+    && chmod 0700 /var/lib/cfst \
     && chown -R 10001:10001 /var/lib/cfst
 COPY --from=backend /out/cfst-web /usr/local/bin/cfst-web
 USER 10001:10001
