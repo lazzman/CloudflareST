@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, OPERATION_STORAGE_KEY, apiPath, forgetOperation, getPendingIds, getUnscopedIds, lookupOperation, request, restoreOperationIds, setCsrf, setTransport, setUnauthorizedHandler, write } from '../src/api/client'
+import { ApiError, OPERATION_STORAGE_KEY, apiPath, forgetOperation, getPendingIds, getUnscopedIds, lookupOperation, newOperationId, request, restoreOperationIds, setCsrf, setTransport, setUnauthorizedHandler, write } from '../src/api/client'
+import { useMutation } from '../src/lib/useMutation'
 const saved = new Map<string, string>()
 beforeEach(() => {
   getPendingIds().forEach(forgetOperation)
@@ -12,6 +13,64 @@ afterEach(() => { getPendingIds().forEach(forgetOperation); vi.unstubAllGlobals(
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status, headers: { 'Content-Type': 'application/json' } })
 
 describe('同源契约与操作恢复', () => {
+  it.each(['subtle', 'digest', 'randomUUID', 'both'])('缺少 %s 时兼容 HTTP 环境保存连接', async missing => {
+    const nativeCrypto = crypto
+    vi.stubGlobal('crypto', {
+      subtle: ['subtle', 'both'].includes(missing) ? undefined : { digest: missing === 'digest' ? undefined : nativeCrypto.subtle.digest.bind(nativeCrypto.subtle) },
+      randomUUID: ['randomUUID', 'both'].includes(missing) ? undefined : nativeCrypto.randomUUID.bind(nativeCrypto),
+      getRandomValues: nativeCrypto.getRandomValues.bind(nativeCrypto),
+    })
+    const transport = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body))
+      expect(body.operation_id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
+      expect(new Headers(init?.headers).get('Idempotency-Key')).toBe(body.operation_id)
+      return json({ operation_id: body.operation_id, state: 'completed' }, 202)
+    })
+    setTransport(transport)
+    const mutation = useMutation()
+    await mutation.submit('/connections', { body: { connection: { name: '仅测试连接' } } })
+    expect(mutation.error.value).toBeUndefined()
+    expect(mutation.receipt.value?.state).toBe('completed')
+    expect(transport).toHaveBeenCalledOnce()
+    expect(getPendingIds()).toEqual([])
+  })
+  it.each(['crypto', 'getRandomValues'])('缺少 %s 且无原生 UUID 时明确说明未提交', async missing => {
+    vi.stubGlobal('crypto', missing === 'crypto' ? undefined : {})
+    const transport = vi.fn()
+    setTransport(transport)
+    const mutation = useMutation()
+    await mutation.submit('/connections', { body: { connection: { name: '仅测试连接' } } })
+    expect(mutation.error.value).toMatchObject({ uncertain: false, details: { code: 'BROWSER_RANDOM_UNAVAILABLE', message: expect.stringContaining('本次未提交') } })
+    expect(mutation.error.value?.details.operation_id).toBeUndefined()
+    expect(mutation.busy.value).toBe(false)
+    expect(transport).not.toHaveBeenCalled()
+    expect(getPendingIds()).toEqual([])
+    expect(saved.size).toBe(0)
+  })
+  it('兼容 UUID 使用安全随机数并正确设置版本和变体位', () => {
+    const getRandomValues = vi.fn((bytes: Uint8Array) => bytes.fill(255))
+    vi.stubGlobal('crypto', { getRandomValues })
+    expect(newOperationId()).toBe('ffffffff-ffff-4fff-bfff-ffffffffffff')
+    expect(getRandomValues).toHaveBeenCalledOnce()
+  })
+  it.each(['/tasks', '/connections'])('原生与 HTTP 兼容摘要互认 %s 的动作锁', async path => {
+    const nativeCrypto = crypto
+    const transport = vi.fn(async () => { throw new Error('模拟响应丢失') })
+    setTransport(transport)
+    const body = path === '/tasks' ? { task: { name: '中文任务', config: { sample_size: 20 } } } : { connection: { name: '中文连接', secrets: { bot_token: 'FAKE_MEMORY_ONLY' } } }
+    await expect(write(path, { body })).rejects.toMatchObject({ uncertain: true })
+    const nativeId = getPendingIds()[0]!
+    vi.stubGlobal('crypto', { getRandomValues: nativeCrypto.getRandomValues.bind(nativeCrypto) })
+    await expect(write(path, { body })).rejects.toMatchObject({ details: { code: 'ACTION_UNCONFIRMED', operation_id: nativeId } })
+    expect(transport).toHaveBeenCalledOnce()
+    forgetOperation(nativeId)
+    await expect(write(path, { body })).rejects.toMatchObject({ uncertain: true })
+    const fallbackId = getPendingIds()[0]!
+    vi.stubGlobal('crypto', nativeCrypto)
+    await expect(write(path, { body })).rejects.toMatchObject({ details: { code: 'ACTION_UNCONFIRMED', operation_id: fallbackId } })
+    expect(transport).toHaveBeenCalledTimes(2)
+    expect(saved.get(OPERATION_STORAGE_KEY)).not.toContain('FAKE_MEMORY_ONLY')
+  })
   it('读取直接实体，不解包不存在的 data', async () => {
     setTransport(async (input, init) => { expect(input).toBe('/api/v1/defaults'); expect(init?.credentials).toBe('same-origin'); expect(init?.redirect).toBe('error'); return json({ timezone: 'Asia/Shanghai' }) })
     await expect(request('/defaults')).resolves.toEqual({ timezone: 'Asia/Shanghai' })

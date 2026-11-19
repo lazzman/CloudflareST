@@ -14,7 +14,9 @@ GitHub 自动构建、GHCR 镜像标签及权限要求见[Docker 镜像发布说
 
 自定义密码应由容器管理平台的 Secret/environment 管理能力注入，不要把明文提交到仓库或命令历史。服务进程启动时读取 CFST_ADMIN_PASSWORD；变更它并重启会使旧会话失效。只面向可信小团队，不提供多租户隔离。
 
-远程访问应置于受信任的 HTTPS 反向代理之后，并将 CFST_SECURE_COOKIE=true；不要直接把不加密的 HTTP 管理端口暴露到互联网。Compose 仅发布至宿主机 loopback。若代理会转发登录来源，请通过 CFST_TRUSTED_PROXIES 明确配置其容器 CIDR（可逗号分隔）；默认不信任任何代理头。反向代理必须删除来访客户端自行提供的转发头并自行生成规范的 X-Forwarded-For 链，不要信任整个 LAN／Docker 网段内不受控的主机。
+公网访问建议置于受信任的 HTTPS 反向代理之后，使用 HTTPS 时将 CFST_SECURE_COOKIE=true；不要直接把不加密的 HTTP 管理端口暴露到互联网。Compose 默认仅发布至宿主机 loopback。若代理会转发登录来源，请通过 CFST_TRUSTED_PROXIES 明确配置其容器 CIDR（可逗号分隔）；默认不信任任何代理头。反向代理必须删除来访客户端自行提供的转发头并自行生成规范的 X-Forwarded-For 链，不要信任整个 LAN／Docker 网段内不受控的主机。
+
+支持通过 HTTP IP／域名访问并保存配置，不要求先配置 HTTPS。浏览器未提供 `crypto.subtle`／`crypto.randomUUID` 时，前端使用兼容的 SHA-256 实现和 `crypto.getRandomValues` 生成操作标识，保留防重复提交及原号核查能力，不使用 `Math.random`。HTTP 不加密管理密码和连接凭据的传输，仅建议在可信网络使用；公网仍建议配置 HTTPS。若浏览器连安全随机数都不可用，会明确提示 `BROWSER_RANDOM_UNAVAILABLE` 和“本次未提交”，不会生成待核查操作号。真正携带操作号的网络中断仍需按原号核查，不能据此直接重交。
 
 NET_RAW 仅为 ICMP 探测所需的能力；若容器仍无法创建 ICMP socket，界面会明确提示，需手动切换 TCPING，不会自动降级。容器网络限制可能影响 ICMP，须在部署环境实测。
 

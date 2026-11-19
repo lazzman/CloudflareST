@@ -1,3 +1,4 @@
+import { sha256 } from '@noble/hashes/sha2.js'
 import type { ApiErrorBody, Receipt } from './types'
 
 export class ApiError extends Error {
@@ -33,6 +34,18 @@ export function getUnscopedIds() {
   return getPendingIds().filter(id => !scopedIds.has(id) && !scopes.has(id))
 }
 export function watchOperations(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener) } }
+function randomOperationId() {
+  const capabilities = globalThis.crypto
+  if (typeof capabilities?.randomUUID === 'function') return capabilities.randomUUID()
+  if (typeof capabilities?.getRandomValues !== 'function') {
+    throw new ApiError(0, { code: 'BROWSER_RANDOM_UNAVAILABLE', message: '当前浏览器无法生成安全随机操作号，本次未提交。请更新浏览器或检查其安全限制。' })
+  }
+  const bytes = capabilities.getRandomValues(new Uint8Array(16))
+  bytes[6] = (bytes[6]! & 0x0f) | 0x40
+  bytes[8] = (bytes[8]! & 0x3f) | 0x80
+  const hex = Array.from(bytes, value => value.toString(16).padStart(2, '0')).join('')
+  return [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20)].join('-')
+}
 export function restoreOperationIds() {
   try {
     const stored = JSON.parse(localStorage.getItem(OPERATION_STORAGE_KEY) || '[]')
@@ -68,7 +81,7 @@ export function forgetOperation(id: string) {
   }
 }
 export function newOperationId(fingerprint?: string, scope?: OperationScope) {
-  const id = crypto.randomUUID()
+  const id = randomOperationId()
   const previousId = fingerprint ? actionLocks.get(fingerprint) : undefined
   pending.add(id)
   if (scope && validScope(scope)) scopes.set(id,scope)
@@ -129,8 +142,11 @@ async function actionFingerprint(path: string, options: { method?: string; body?
     if (value && typeof value === 'object' && !Array.isArray(value)) return Object.fromEntries(Object.entries(value).sort(([first], [second]) => first.localeCompare(second)))
     return value
   })
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(serialized))
-  return Array.from(new Uint8Array(digest), value => value.toString(16).padStart(2, '0')).join('')
+  const bytes = new TextEncoder().encode(serialized)
+  const digest = typeof globalThis.crypto?.subtle?.digest === 'function'
+    ? new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', bytes))
+    : sha256(bytes)
+  return Array.from(digest, value => value.toString(16).padStart(2, '0')).join('')
 }
 export async function write(path: string, options: { method?: 'POST' | 'PATCH' | 'DELETE'; body?: object; revision?: string | number } = {}) {
   const fingerprint = await actionFingerprint(path, options)

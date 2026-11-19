@@ -13,6 +13,7 @@ import ProtectionControl from '../components/ProtectionControl.vue'
 import AppIcon from '../components/AppIcon.vue'
 import PageHeader from '../components/PageHeader.vue'
 import SurfacePanel from '../components/SurfacePanel.vue'
+const httpTransport = window.location.protocol === 'http:'
 type ConnectionWithSecrets = Connection & { secrets: Record<string, string> }
 const resource = useResource<ConnectionWithSecrets[]>(async () => {
   const connections = await request<Connection[]>('/connections')
@@ -46,6 +47,7 @@ function credentialEntries(connection: ConnectionWithSecrets) { return Object.en
 </script>
 <template>
   <PageHeader title="服务连接" desc="配置与凭据明文回显；凭据仅保留在本页内存，不进入本地存储。保存不发送测试消息。"><button class="primary" type="button" @click="open()"><AppIcon name="plus" />新增连接</button></PageHeader>
+  <p v-if="httpTransport" class="small muted">当前使用 HTTP，密码与凭据传输未加密；仅建议在可信网络使用。</p>
   <ResourceState :loading="resource.loading.value" :error="resource.error.value" :updated-at="resource.updatedAt.value" @retry="resource.reload" /><MutationState :error="mutation.error.value" :receipt="mutation.receipt.value" />
   <SurfacePanel title="共享服务连接" :meta="resource.data.value ? resource.data.value.length + ' 项' : '等待读取'" :aria-busy="resource.loading.value || resource.refreshing.value">
     <table v-if="resource.data.value?.length" class="responsive-table"><caption class="sr-only">共享服务连接配置与凭据</caption><thead><tr><th scope="col">连接名称 / 类型</th><th scope="col">账号 / 明文凭据</th><th scope="col">引用任务</th><th scope="col">操作</th></tr></thead><tbody>
