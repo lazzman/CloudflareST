@@ -43,6 +43,10 @@ function setToday() {
   filters.value.start = end.slice(0, 10) + 'T00:00'
   apply()
 }
+function clear() {
+  filters.value = { action: '', actor: '', object_id: '', result: '', start: '', end: '' }
+  apply()
+}
 </script>
 <template>
   <header class="page-heading">
@@ -79,16 +83,18 @@ function setToday() {
       <label>开始时间<input v-model="filters.start" type="datetime-local" :disabled="!systemTimezone" aria-describedby="filter-timezone" /></label>
       <label>结束时间<input v-model="filters.end" type="datetime-local" :disabled="!systemTimezone" aria-describedby="filter-timezone" /></label>
     </div>
-    <div class="actions">
-      <span class="small muted">快捷时间</span>
-      <button type="button" :disabled="!systemTimezone" @click="setToday">今天</button>
-      <button type="button" :disabled="!systemTimezone" @click="setRange(24)">最近 24 小时</button>
-      <button type="button" :disabled="!systemTimezone" @click="setRange(24 * 7)">最近 7 天</button>
-      <button type="button" :disabled="!systemTimezone" @click="setRange(24 * 30)">最近 30 天</button>
-    </div>
-    <div class="actions">
-      <button class="primary">查询日志</button>
-      <button type="button" @click="filters = { action: '', actor: '', object_id: '', result: '', start: '', end: '' }; apply()">清除条件</button>
+    <div class="filter-footer">
+      <div class="quick-ranges" role="group" aria-label="快捷时间">
+        <span class="small muted">快捷时间</span>
+        <button type="button" :disabled="!systemTimezone" @click="setToday">今天</button>
+        <button type="button" :disabled="!systemTimezone" @click="setRange(24)">最近 24 小时</button>
+        <button type="button" :disabled="!systemTimezone" @click="setRange(24 * 7)">最近 7 天</button>
+        <button type="button" :disabled="!systemTimezone" @click="setRange(24 * 30)">最近 30 天</button>
+      </div>
+      <div class="actions filter-submit">
+        <button class="primary">查询日志</button>
+        <button type="button" @click="clear">清除条件</button>
+      </div>
     </div>
   </form>
   <ResourceState :loading="resource.loading.value" :error="resource.error.value" :updated-at="resource.updatedAt.value" @retry="resource.reload" />
