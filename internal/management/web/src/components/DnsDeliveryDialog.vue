@@ -38,10 +38,10 @@ async function submit() {
     <article v-for="target in targetSelection" :key="targetKey(target)" class="target-entry">
       <TargetFacts :target="target" />
       <CandidatePicker v-model="selectedIps[targetKey(target)]" :task-id="taskId" :run-id="runId" :record-type="target.type" />
-      <p v-if="isNewerWrite(target)" class="notice warning">较旧的来源运行可能覆盖之后的已确认写入。请复核目标、last_known_write 和实际当前值。</p>
+      <p v-if="isNewerWrite(target)" class="notice warning">较旧的来源运行可能覆盖之后的已确认写入。请复核目标、最近写入记录和实际当前值。</p>
       <p v-if="target.protection?.active" class="notice warning">此目标自动写入已暂停，待人工处理。手动投递不解除暂停。</p>
     </article>
-    <label class="check-line"><input v-model="acknowledged" type="checkbox" />我已逐条核对账号、记录身份、读取值、last_known_write、IP 族及覆盖风险，同意只更新所选现有目标</label>
+    <label class="check-line"><input v-model="acknowledged" type="checkbox" />我已逐条核对账号、记录身份、读取值、最近写入记录、IP 族及覆盖风险，同意只更新所选现有目标</label>
     <p class="notice warning">提交前生成固定操作号；断线时系统自动查询原号结果，仍未确认时沿用原号，不换号盲重试。解除保护是独立操作。</p>
     <MutationState :error="mutation.error.value" />
     <div class="actions">
